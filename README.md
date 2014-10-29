@@ -16,9 +16,11 @@ Quick Start
 
 ```
 $ git clone https://github.com/xiechao06/Flask-Report.git
-$ cd Flask-Report; python setup.py install
+$ cd Flask-Report
+$ pip install -r requirements.txt
+$ python setup.py install
 $ ./make_test_data.sh
-$ ./run_example.sh
+$ python flask_report/example
 ```
 then open *http://127.0.0.1:5001/report/report/1* to see what happens.
 

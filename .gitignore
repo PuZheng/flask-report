@@ -36,4 +36,4 @@ nosetests.xml
 tags
 env
 *.sw[p|o]
-example/temp.db
+flask_report/example/temp.db
