@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &mdash; flask-report 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="flask-report 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to flask-report’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to flask-report’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">flask-report 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p><em>Flask-Report</em> is a flask plugin to display a list of records in web pages,
+these list of records simply are query results. It is not a RAD tool like BIRT,
+you must write configurations to generate report. And it is not versatile as
+other report engines. It is meant to be simple, easy to extend/re-develop (once
+you understand it).</p>
+<img alt="_images/infrastructure.png" src="_images/infrastructure.png" />
+<div class="section" id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>reports are interactive, eg. filter on certain columns, sort by certain column</li>
+<li>downloaded as pdf or csv</li>
+<li>drill down on certain column</li>
+<li>send reports through email periodically</li>
+</ul>
+</div>
+<div class="section" id="glossary">
+<h2>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Data Set</li>
+</ul>
+<p>The definition of the query results. A report is a representation or projection
+of a data set. You must define a data set before you could generate a report</p>
+<ul class="simple">
+<li>Report</li>
+</ul>
+<p>Representaion of a list of records</p>
+<ul class="simple">
+<li>Notification</li>
+</ul>
+<p>A series of scheduled report pushing actions (through emails).</p>
+</div>
+<div class="section" id="pages">
+<h2>Pages<a class="headerlink" href="#pages" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>/report-list</li>
+</ul>
+<p>display a list of reports</p>
+<ul class="simple">
+<li>/report/&lt;int:id&gt;</li>
+</ul>
+<p>display details of a given report</p>
+<ul class="simple">
+<li>/data-set-list</li>
+</ul>
+<p>display a list of data set</p>
+<ul class="simple">
+<li>/data-set/&lt;int:id&gt;</li>
+</ul>
+<p>display details ofa given data set</p>
+<ul class="simple">
+<li>/notification-list</li>
+</ul>
+<p>display a list of notifications</p>
+<ul class="simple">
+<li>/notification/&lt;int:id&gt;</li>
+</ul>
+<p>display details of a given notification</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Introduction</a><ul>
+<li><a class="reference internal" href="#features">Features</a></li>
+<li><a class="reference internal" href="#glossary">Glossary</a></li>
+<li><a class="reference internal" href="#pages">Pages</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to flask-report&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/Introduction.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to flask-report’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">flask-report 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, xiechao.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
