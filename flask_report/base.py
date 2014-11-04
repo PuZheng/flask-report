@@ -46,7 +46,7 @@ class FlaskReport(object):
         host.route("/report_txt/<int:id_>")(self.report_txt)
         host.route("/drill-down-detail/<int:report_id>/<int:col_id>")(self.drill_down_detail)
 
-        host.route("/data-sets/")(self.data_set_list)
+        host.route("/data-set-list/")(self.data_set_list)
         host.route("/data-set/<int:id_>")(self.data_set)
         host.route("/notification-list")(self.notification_list)
         host.route("/notification/", methods=['GET', 'POST'])(self.notification)
