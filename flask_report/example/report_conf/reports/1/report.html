@@ -1,0 +1,31 @@
+{% extends "report____/base-report.html" %}
+
+{% block report____footer_block %}
+<script type='text/javascript'>
+  var aggregators = [
+      {
+        name: "{{ _('Total') }}",
+        fn: function (arr) {
+          var sum = 0;
+          arr.forEach(function (v, idx) {
+            sum += parseFloat(v);
+          });
+          return sum;
+        },
+        columns: [2, 3, 4]
+      },
+      {
+        name: "{{ _('Avg') }}",
+        fn: function (arr) {
+          var sum = 0;
+          arr.forEach(function (v, idx) {
+            sum += parseFloat(v);
+          });
+          return sum/arr.length;
+        },
+        columns: [2, 3, 4]
+      },
+    ];
+</script>
+{{ super() }}
+{% endblock %}

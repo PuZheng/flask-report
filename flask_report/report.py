@@ -143,7 +143,7 @@ class Report(object):
         report_file = os.path.join(self.report_view.report_dir, str(self.id_), "report.html")
         if not os.path.exists(report_file):
             # read the default report template
-            return self.report_view.app.jinja_env.get_template("report____/default_html_report.html")
+            return self.report_view.app.jinja_env.get_template("report____/report.html")
         return self.report_view.app.jinja_env.from_string(codecs.open(report_file, encoding='utf-8').read())
 
     def read_literal_filter_condition(self):
