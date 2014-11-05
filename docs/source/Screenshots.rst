@@ -6,12 +6,16 @@ Report List
 ===========
 
 .. figure:: _static/report-list.png
-  :scale: 30 %
+  :scale: 50 %
 
-  here only one report's name contains '三国'
 
 Report 
 =============
+
+.. figure:: _static/report.png
+  :scale: 50 %
+
+  here shows the report of characters in '吴'
 
 Report with Drilldown
 =====================

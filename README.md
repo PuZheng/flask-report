@@ -28,4 +28,4 @@ then open *http://127.0.0.1:5001/report/report/1* to see what happens.
 
 [Documentaions](https://puzheng.github.io/flask-report)
 
-[Screenshots](https://puzheng.github.io/flask-report/screenshots.html)
+[Screenshots](https://puzheng.github.io/flask-report/Screenshots.html)
