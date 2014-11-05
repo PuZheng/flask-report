@@ -1,0 +1,23 @@
+{% extends "report____/base-report.html" %}
+
+{% block report____footer_block %}
+<script type='text/javascript'>
+  var aggregators = [
+      {
+        name: "{{ _('Max') }}",
+        fn: function (arr) {
+          return Math.max.apply(Math, arr);
+        },
+        columns: [2, 3, 4]
+      },
+      {
+        name: "{{ _('Min') }}",
+        fn: function (arr) {
+          return Math.min.apply(Math, arr);
+        },
+        columns: [2, 3, 4]
+      },
+    ];
+</script>
+{{ super() }}
+{% endblock %}

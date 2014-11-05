@@ -145,11 +145,10 @@ class FlaskReport(object):
         if id_ is not None:
             report = Report(self, id_)
 
-            html_report = report.html_template.render(report=report)
             code = report.read_literal_filter_condition()
 
             SQL_html = highlight(query_to_sql(report.query), SqlLexer(), HtmlFormatter())
-            params = dict(report=report, html_report=html_report, SQL=SQL_html)
+            params = dict(report=report, SQL=SQL_html)
             if code is not None:
                 customized_filter_condition = highlight(code, PythonLexer(), HtmlFormatter())
                 params['customized_filter_condition'] = customized_filter_condition
@@ -158,7 +157,7 @@ class FlaskReport(object):
                 if isinstance(extra_params, types.FunctionType):
                     extra_params = extra_params(id_)
                 params.update(extra_params)
-            return render_template("report____/report.html", **params)
+            return report.html_template.render(**params)
 
     def _write_report(self, to_dir, **kwargs):
         import yaml
