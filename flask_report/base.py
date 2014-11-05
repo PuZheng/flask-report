@@ -71,18 +71,9 @@ class FlaskReport(object):
 
         @app.template_filter("dpprint")
         def dict_pretty_print(value):
-            if not isinstance(value, list):
-                value = [value]
-            s = "{"
-            for val in value:
-                idx = 0
-                for k, v in val.items():
-                    idx += 1
-                    s += "%s:%s" % (k, v)
-                    if idx != len(val):
-                        s += ","
-            s += "}"
-            return s
+            if isinstance(value, list):
+                return '[' + ', '.join(dict_pretty_print(i) for i in value) + ']'
+            return '{' + ','.join('%s:%s' % (k, v) for k, v in value.items()) + '}'
 
         self.mail = mail or Mail(self.app)
         self.sched = BackgroundScheduler()

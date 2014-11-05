@@ -3,6 +3,4 @@ create_time: '2013-07-15 20:20:35'
 creator: 'xiechao'
 data_set_id: 1
 description: ''
-filters:
-  Group.name: {operator: eq, value: 魏}
-name: 三国时期魏国人物报告
+name: 三国时期蜀国人物报告

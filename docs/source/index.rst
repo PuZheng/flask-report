@@ -16,6 +16,7 @@ Contents:
    Tutorial
    Generate Reports
    Extension
+   Internationalization
 
 
 

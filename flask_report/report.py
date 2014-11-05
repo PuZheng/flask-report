@@ -165,7 +165,7 @@ class Report(object):
     def get_drill_down_detail(self, col_id, **filters):
         lib = import_file(os.path.join(self.report_view.report_dir, str(self.id_), "drill_downs", str(col_id), "objects.py"))
         return lib.objects(self.report_view.db, self.report_view.model_map, **filters)
-    
+
     @property
     def sum_fields(self):
         return [{"col": column["name"], "value": sum(d[column["idx"]] or 0 for d in self.data)} for column in
@@ -240,7 +240,7 @@ def create_report(data_set, name, description="", creator="", create_time=None, 
     create_time = create_time or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     columns = columns or [c['idx'] for c in data_set.columns]
     filters = filters or {}
-    
+
     if id is None:
         all_report_dirs = [dir for dir in os.listdir(data_set.report_view.report_dir) if dir.isdigit()]
         if not all_report_dirs:
