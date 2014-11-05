@@ -6,6 +6,7 @@
 
 {% block report____customized_head_block %}
   <link href="http://cdn.bootcss.com/datatables/1.10.1/css/jquery.dataTables.min.css" rel="stylesheet">
+  <script src="http://cdn.bootcss.com/underscore.js/1.7.0/underscore-min.js"></script>
   <script src="http://cdn.bootcss.com/datatables/1.10.1/js/jquery.dataTables.min.js"></script>
   <script src="http://cdn.bootcss.com/sprintf/1.0.2/sprintf.min.js"></script>
 {% endblock %}
@@ -66,8 +67,8 @@
     </div>
   </div>
   <hr/>
-  <div>
-    {{ html_report|safe }}
+  <div class='row'>
+      {{ html_report|safe }}
   </div>
   <hr/>
 
@@ -158,7 +159,11 @@ $(function () {
         return ((x < y) ? 1 : ((x > y) ? -1 : 0));
     };
 
-    var oTable = $("#report").dataTable({
+    var ost = {
+        "columnDefs": [
+          { "orderable": false, "targets": 0 }
+        ],
+        "order": [[ 1, "asc" ]],
         "oLanguage": {
             "sLengthMenu": '{{ _("Display _MENU_ records per page") }}',
             "sZeroRecords": '{{ _("Nothing found - sorry") }}',
@@ -175,38 +180,43 @@ $(function () {
         "bSortCellsTop": true,
         "sDom": "<'row'<'col-lg-6'l>r>t<'row'<'col-lg-6'i><'col-lg-6'p>>",
         "iDisplayLength": 25,
-        "fnFooterCallback": (function (sumColumns) {
-            return function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                var sums = [];
-                for (i = iStart; i < iEnd; i++) {
-                    for (j = 0; j < aaData[aiDisplay[i]].length; j++) {
-                        var num = parseFloat(aaData[aiDisplay[i]][j]);
-                        if (!isNaN(num)) {
-                            if (sums[j]) {
-                                sums[j] += num;
-                            } else {
-                                sums[j] = num;
-                            }
-                        }
-                    }
+    }
+    if (typeof(aggregators) != "undefined") {
+        ost.footerCallback = function (foot, aaData, iStart, iEnd, aiDisplay) {
+            var that = this;
+            aggregators.forEach(function (aggregator, idx) {
+                // Note!! 0 is reserved as label
+                var tr = $('<tr>').appendTo($('#report tfoot'));
+                _.range({{ report.columns|length + 1 }}).forEach(function (i) {
+                    tr.append('<th>');
+                });
+                var sums = [aggregator.name];
+                for (var j = 1; j < {{ report.columns|length + 1}}; ++j) {
+                  sums[j] = aggregator.fn(_.range(iStart, iEnd).map(function (row, idx) {
+                      return aaData[aiDisplay[row]][j];
+                    }));
                 }
-                for (var i = 0; i < sums.length; i++) {
-                    var visibleIndex = this.fnSettings().oApi._fnColumnIndexToVisible(this.fnSettings(), i);
-                    if (visibleIndex != null && ( sumColumns.length == 0 || $.inArray(visibleIndex, sumColumns) > -1)) {
+                tr.find('th:eq("0")').html('<b>' + sums[0] + '</b>');
+                for (var i = 1; i < sums.length; i++) {
+                    var visibleIndex = that.fnSettings().oApi._fnColumnIndexToVisible(that.fnSettings(), i);
+                    if (visibleIndex != null && $.inArray(visibleIndex - 1, aggregator.columns) > -1) {
                         if (sums[i]) {
-                            $('#report tfoot th:eq(' + visibleIndex + ')').html('<b>' + '{{ _("Total") }}' + ': ' + sums[i] + '</b>');
+                            tr.find('th:eq(' + visibleIndex + ')').html('<b>' + sums[i] + '</b>');
                         } else {
-                            $('#report tfoot th:eq(' + visibleIndex + ')').html('');
+                            tr.find('th:eq(' + visibleIndex + ')').html('');
                         }
                     }
                 }
-            }
-        })({{ report.sum_column_index }})
-    });
+            });
+        }
+    }
+    var oTable = $("#report").dataTable(ost);
+
 
     $("#detail").on('shown', function () {
         $('a[data-target="#detail"]').text("{{ _('hide detail') }}" + " <<");
     });
+
     $("#detail").on('hidden', function () {
         $('a[data-target="#detail"]').text("{{ _('show detail') }}" + " >>");
     });
