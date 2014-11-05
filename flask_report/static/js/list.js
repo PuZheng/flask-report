@@ -12,7 +12,7 @@ $(function () {
         }
 
         $('ul.list-group li').each(function (i) {
-            if ($(this).data('report').indexOf(needle) == -1) {
+            if ($(this).data('name').indexOf(needle) == -1) {
                 $(this).hide();
             } else {
                 $(this).show();

@@ -1,7 +1,7 @@
 {% extends "report____/layout.html" %}
 
 {% block report____title_block %}
-  {{ _('report list') }}
+  {{ _('Report List') }}
 {% endblock %}
 
 {% block report____head_block %}
@@ -27,7 +27,7 @@
       <div class='col-xs-12'>
         <ul class='list-group'>
           {% for report in reports %}
-            <li class='list-group-item' data-report="{{ report.name  }}">
+            <li class='list-group-item' data-name="{{ report.name  }}">
               <a class='lead' href="{{ url_for('.report', id_=report.id_) }}">{{ report.name }}</a>
               <a href="#" data-toggle='tooltip' data-html=true data-trigger='hover' title='{{ report.short_description }}'><i class="fa fa-question-circle"></i></a>
             </li>
