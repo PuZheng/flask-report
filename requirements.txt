@@ -24,3 +24,4 @@ splinter
 nose-testconfig
 -e git+https://github.com/xiechao06/pyfeature.git#egg=pyfeature
 APScheduler>=3.0.0
+Geraldo>=0.4.17
