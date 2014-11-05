@@ -17,6 +17,7 @@ Contents:
    Generate Reports
    Extension
    Internationalization
+   Screenshots
 
 
 
