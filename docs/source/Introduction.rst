@@ -14,7 +14,7 @@ Features
 ========
 
 * reports are interactive, eg. filter on certain columns, sort by certain column
-* downloaded as pdf or csv
+* downloaded as CSV
 * drill down on certain column
 * send reports through email periodically
 

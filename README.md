@@ -8,7 +8,7 @@ Flask-Report
     * curve chart
     * bar chart
 
-And the reports could be downloaded as PDF, CSV.
+And the reports could be downloaded as CSV.
 
 
 Quick Start
