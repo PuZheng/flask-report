@@ -98,7 +98,7 @@ class PDFReport(BaseReport):
         self.band_detail = BandDetail(columns=columns, style={'fontName': 'hei', 'fontSize': 12})
         self.register_font()
         self.band_page_header = BandHeader(columns=columns, style={'fontName': 'hei', 'fontSize': 12})
-        self.band_summary = BandSummary(sum_columns=sum_columns or [], avg_columns=avg_columns or [])
+        #self.band_summary = BandSummary(sum_columns=sum_columns or [], avg_columns=avg_columns or [])
 
     def register_font(self):
         from reportlab.pdfbase import pdfmetrics

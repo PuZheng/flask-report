@@ -2,12 +2,17 @@
 import os
 import json
 import types
+from StringIO import StringIO
+import time
+import csv
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import render_template, request, url_for, redirect, flash, jsonify
+from flask import (render_template, request, url_for, redirect, flash, jsonify,
+                   Response, Blueprint)
 from flask.ext.mail import Mail, Message
 from flask.ext.babel import _
-from wtforms import Form, TextField, validators, IntegerField, SelectMultipleField
+from wtforms import (Form, TextField, validators, IntegerField,
+                     SelectMultipleField)
 from pygments import highlight
 from pygments.lexers import PythonLexer, SqlLexer
 from pygments.formatters import HtmlFormatter
@@ -19,7 +24,9 @@ from flask.ext.report.utils import get_column_operated, query_to_sql, dump_yaml
 
 
 class FlaskReport(object):
-    def __init__(self, db, model_map, app, blueprint=None, extra_params=None, table_label_map=None, mail=None):
+
+    def __init__(self, db, model_map, app, blueprint=None, extra_params=None,
+                 table_label_map=None, mail=None):
         self.db = db
         self.app = app
         host = blueprint or app
@@ -29,7 +36,8 @@ class FlaskReport(object):
         self.data_set_dir = os.path.join(self.conf_dir, "data_sets")
         self.model_map = model_map  # model name -> model
         self.table_label_map = table_label_map or {}
-        self.table_map = dict((model.__tablename__, model) for model in model_map.values())  # table name -> model
+        self.table_map = dict((model.__tablename__, model) for model in
+                              model_map.values())  # table name -> model
         if not os.path.exists(self.conf_dir):
             os.makedirs(self.conf_dir)
         if not os.path.exists(self.report_dir):
@@ -42,21 +50,23 @@ class FlaskReport(object):
         host.route("/graphs/report/<int:id_>")(self.report_graphs)
         host.route("/report/<int:id_>", methods=['GET', 'POST'])(self.report)
         host.route("/report_csv/<int:id_>")(self.report_csv)
-        host.route("/report_pdf/<int:id_>")(self.report_pdf)
-        host.route("/report_txt/<int:id_>")(self.report_txt)
-        host.route("/drill-down-detail/<int:report_id>/<int:col_id>")(self.drill_down_detail)
+        host.route("/drill-down-detail/<int:report_id>/<int:col_id>")(
+            self.drill_down_detail)
 
         host.route("/data-set-list/")(self.data_set_list)
         host.route("/data-set/<int:id_>")(self.data_set)
         host.route("/notification-list")(self.notification_list)
         host.route("/notification/", methods=['GET', 'POST'])(self.notification)
-        host.route("/notification/<int:id_>", methods=['GET', 'POST'])(self.notification)
-        host.route("/push_notification/<int:id_>", methods=['POST'])(self.push_notification)
-        host.route("/start_notification/<int:id_>", methods=['GET'])(self.start_notification)
-        host.route("/stop_notification/<int:id_>", methods=['GET'])(self.stop_notification)
+        host.route("/notification/<int:id_>", methods=['GET', 'POST'])(
+            self.notification)
+        host.route("/push_notification/<int:id_>",
+                   methods=['POST'])(self.push_notification)
+        host.route("/start_notification/<int:id_>",
+                   methods=['GET'])(self.start_notification)
+        host.route("/stop_notification/<int:id_>",
+                   methods=['GET'])(self.stop_notification)
         host.route("/schedule-list")(self.get_schedules)
 
-        from flask import Blueprint
         # register it for using the templates of data browser
         self.blueprint = Blueprint("report____", __name__,
                                    static_folder="static",
@@ -72,8 +82,10 @@ class FlaskReport(object):
         @app.template_filter("dpprint")
         def dict_pretty_print(value):
             if isinstance(value, list):
-                return '[' + ', '.join(dict_pretty_print(i) for i in value) + ']'
-            return '{' + ','.join('%s:%s' % (k, v) for k, v in value.items()) + '}'
+                return '[' + ', '.join(dict_pretty_print(i) for i in value) + \
+                    ']'
+            return '{' + ','.join('%s:%s' % (k, v) for k, v in value.items()) \
+                + '}'
 
         self.mail = mail or Mail(self.app)
         self.sched = BackgroundScheduler()
@@ -84,7 +96,6 @@ class FlaskReport(object):
                 for notification in get_all_notifications(self):
                     if notification.enabled:
                         self.start_notification(notification.id_)
-
 
     def try_view_report(self):
         pass
@@ -97,12 +108,15 @@ class FlaskReport(object):
 
     def report_graphs(self, id_):
         report = Report(self, id_)
-        return render_template("report____/graphs.html", url=request.args.get("url"), bar_charts=report.bar_charts,
+        return render_template("report____/graphs.html",
+                               url=request.args.get("url"),
+                               bar_charts=report.bar_charts,
                                name=report.name, pie_charts=report.pie_charts)
 
     def data_set_list(self):
         self.try_edit_data_set()
-        data_sets = [DataSet(self, int(dir_name)) for dir_name in os.listdir(self.data_set_dir) if
+        data_sets = [DataSet(self, int(dir_name)) for dir_name in
+                     os.listdir(self.data_set_dir) if
                      dir_name.isdigit() and dir_name != '0']
         params = dict(data_sets=data_sets)
         extra_params = self.extra_params.get("data_sets")
@@ -115,7 +129,8 @@ class FlaskReport(object):
     def data_set(self, id_):
         self.try_edit_data_set()
         data_set = DataSet(self, id_)
-        SQL_html = highlight(query_to_sql(data_set.query), SqlLexer(), HtmlFormatter())
+        SQL_html = highlight(query_to_sql(data_set.query), SqlLexer(),
+                             HtmlFormatter())
         params = dict(data_set=data_set, SQL=SQL_html)
         extra_params = self.extra_params.get('data_set')
         if extra_params:
@@ -125,7 +140,8 @@ class FlaskReport(object):
         return render_template("report____/data-set.html", **params)
 
     def _get_report_list(self):
-        return [Report(self, int(dir_name)) for dir_name in os.listdir(self.report_dir) if
+        return [Report(self, int(dir_name)) for dir_name in
+                os.listdir(self.report_dir) if
                 dir_name.isdigit() and dir_name != '0']
 
     def report_list(self):
@@ -147,11 +163,14 @@ class FlaskReport(object):
 
             code = report.read_literal_filter_condition()
 
-            SQL_html = highlight(query_to_sql(report.query), SqlLexer(), HtmlFormatter())
+            SQL_html = highlight(query_to_sql(report.query), SqlLexer(),
+                                 HtmlFormatter())
             params = dict(report=report, SQL=SQL_html)
             if code is not None:
-                customized_filter_condition = highlight(code, PythonLexer(), HtmlFormatter())
-                params['customized_filter_condition'] = customized_filter_condition
+                customized_filter_condition = highlight(code, PythonLexer(),
+                                                        HtmlFormatter())
+                params['customized_filter_condition'] = \
+                    customized_filter_condition
             extra_params = self.extra_params.get("report")
             if extra_params:
                 if isinstance(extra_params, types.FunctionType):
@@ -166,7 +185,8 @@ class FlaskReport(object):
         kwargs.setdefault("description", "temp")
         import datetime
 
-        kwargs["create_time"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        kwargs["create_time"] = datetime.datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S")
         file_name = os.path.join(to_dir, "meta.yaml")
         if os.path.isfile(file_name):
             new_file_name = os.path.join(to_dir, "meta.yaml~")
@@ -183,89 +203,33 @@ class FlaskReport(object):
         data = Report(self, id_)
         if not data.data:
             raise ValueError
-        report = ReportClass(queryset=data.data, columns=data.columns, report_name=data.name,
-                             sum_columns=data.sum_columns, avg_columns=data.avg_columns)
+        report = ReportClass(queryset=data.data, columns=data.columns,
+                             report_name=data.name,
+                             sum_columns=data.sum_columns,
+                             avg_columns=data.avg_columns)
         return report
 
-    def _get_report_value(self, id_, ReportClass, ReportGenerator, first_row_with_column_names=False):
-        from flask.ext.report.report_templates import BaseReport
-
-        assert issubclass(ReportClass, BaseReport)
-
-        from geraldo.generators import base
-
-        assert issubclass(ReportGenerator, base.ReportGenerator)
-        try:
-            from cStringIO import StringIO
-        except ImportError:
-            from StringIO import StringIO
-        return_fileobj = StringIO()
-        from flask.ext.report.writer import UnicodeWriter
-
-        report = self._get_report(id_, ReportClass)
-
-        report.generate_by(ReportGenerator, filename=return_fileobj, writer=UnicodeWriter(return_fileobj),
-                           first_row_with_column_names=first_row_with_column_names)
-        return return_fileobj
-
-    def _get_report_class(self, id_, default=None):
-        if default is None:
-            raise ValueError
-        filter_def_file = os.path.join(self.report_dir, str(id_), "report_templates.py")
-        if not os.path.exists(filter_def_file):
-            filter_def_file = os.path.join(self.report_dir, "0", "report_templates.py")
-        if os.path.exists(filter_def_file):
-            from import_file import import_file
-
-            lib = import_file(filter_def_file)
-            return getattr(lib, default.__name__, default)
-        return default
-
     def report_csv(self, id_):
-        from geraldo.generators import CSVGenerator
-        from flask.ext.report.report_templates import CSVReport
+        report = Report(self, id_)
 
-        try:
-            return_fileobj = self._get_report_value(id_, self._get_report_class(id_, CSVReport), CSVGenerator, True)
-        except ValueError:
-            return render_template("report____/error.html", error=u"没有该报告", message=u"无法导出空报告"), 403
-        from flask import Response
+        si = StringIO()
+        writer = csv.writer(si, delimiter=',')
+        writer.writerow([col['name'].encode('utf-8') for col in report.columns])
+        col_id_list = [col['idx'] for col in report.columns]
+        for row in report.data:
+            row = [row[i].encode('utf-8') if isinstance(row[i], unicode) else
+                   row[i] for i in col_id_list]
+            writer.writerow(row)
 
-        response = Response(return_fileobj.getvalue(), mimetype="text/csv")
-        response.headers["Content-disposition"] = "attachment; filename={}.csv".format(str(id_))
-        return response
-
-    def report_pdf(self, id_):
-        from flask.ext.report.report_templates import PDFReport
-        from geraldo.generators import PDFGenerator
-
-        try:
-            return_fileobj = self._get_report_value(id_, self._get_report_class(id_, PDFReport), PDFGenerator, True)
-        except ValueError:
-            return render_template("report____/error.html", error=u"没有该报告", message=u"无法导出空报告"), 403
-        from flask import Response
-
-        response = Response(return_fileobj.getvalue(), mimetype="application/pdf")
-        response.headers["Content-disposition"] = "attachment; filename={}.pdf".format(str(id_))
-        return response
-
-    def report_txt(self, id_):
-        from flask.ext.report.report_templates import TxtReport
-
-        from geraldo.generators import TextGenerator
-
-        try:
-            return_fileobj = self._get_report_value(id_, self._get_report_class(id_, TxtReport), TextGenerator, True)
-        except ValueError:
-            return render_template("report____/error.html", error=u"没有该报告", message=u"无法导出空报告"), 403
-        from flask import Response
-
-        response = Response(return_fileobj.getvalue(), mimetype="text/plan")
-        response.headers["Content-disposition"] = "attachment; filename={}.txt".format(str(id_))
-        return response
+        rsp = Response(si.getvalue(), mimetype="text/csv")
+        filename = report.name.encode('utf-8') + \
+            time.strftime('.%Y%m%d%H%M%S.csv')
+        rsp.headers["Content-disposition"] = "attachment; filename=" + filename
+        return rsp
 
     def get_model_label(self, table):
-        return self.table_label_map.get(table.name) or self.table_map[table.name].__name__
+        return self.table_label_map.get(table.name) or \
+            self.table_map[table.name].__name__
 
     def drill_down_detail(self, report_id, col_id):
         filters = request.args
@@ -274,13 +238,13 @@ class FlaskReport(object):
         col = get_column_operated(getattr(col, 'element', col))
         model_name = self.get_model_label(col.table)
         items = report.get_drill_down_detail(col_id, **filters)
-        return report.get_drill_down_detail_template(col_id).render(items=items,
-                                                                    key=col.key,
-                                                                    model_name=model_name,
-                                                                    report=report)
+        return report.get_drill_down_detail_template(
+            col_id).render(items=items, key=col.key, model_name=model_name,
+                           report=report)
 
     def notification_list(self):
-        notifications = [Notification(self, int(dir_name)) for dir_name in os.listdir(self.notification_dir) if
+        notifications = [Notification(self, int(dir_name)) for dir_name
+                         in os.listdir(self.notification_dir) if
                          dir_name.isdigit() and dir_name != '0']
         params = dict(notification_list=notifications)
         extra_params = self.extra_params.get("notification_list")
@@ -295,10 +259,12 @@ class FlaskReport(object):
 
         def _write(form, id_):
             kwargs = dict(name=form["name"], senders=form.getlist("sender"),
-                          report_ids=form.getlist("report_ids", type=int), description=form["description"],
+                          report_ids=form.getlist("report_ids", type=int),
+                          description=form["description"],
                           subject=form["subject"], crontab=form["crontab"],
                           enabled=form.get("enabled", type=bool, default=False))
-            dump_yaml(os.path.join(self.notification_dir, str(id_), 'meta.yaml'), **kwargs)
+            dump_yaml(os.path.join(self.notification_dir, str(id_),
+                                   'meta.yaml'), **kwargs)
 
         if id_ is not None:
             notification = Notification(self, id_)
@@ -311,7 +277,8 @@ class FlaskReport(object):
                 else:
                     _write(request.form, id_)
                 flash(_("Update Successful!"))
-                return redirect(url_for(".notification", id_=id_, _method="GET"))
+                return redirect(url_for(".notification", id_=id_,
+                                        _method="GET"))
             else:
                 params = dict(notification=notification,
                               report_list=self._get_report_list())
@@ -323,7 +290,8 @@ class FlaskReport(object):
                 return render_template("report____/notification.html", **params)
         else:
             if request.method == "POST":
-                id_ = max([int(dir_name) for dir_name in os.listdir(self.notification_dir) if
+                id_ = max([int(dir_name) for dir_name in
+                           os.listdir(self.notification_dir) if
                            dir_name.isdigit() and dir_name != '0']) + 1
                 new_dir = os.path.join(self.notification_dir, str(id_))
                 if not os.path.exists(new_dir):
@@ -349,8 +317,9 @@ class FlaskReport(object):
             senders = [to]
 
         for sender in senders:
-            if sender not in notification.senders in senders:
-                return _('notification %(id_)s are not allowed to send to %(to)s', id_=id_, to=sender), 403
+            if sender not in senders:
+                return _('notification %(id)s is not allowed to send to %(to)s',
+                         id=id_, to=sender), 403
         html = notification.template.render(notification=notification)
         msg = Message(subject=notification.subject,
                       html=html,
@@ -369,8 +338,9 @@ class FlaskReport(object):
 
             return _push_notification
 
-        job = self.sched.add_cron_job(_closure(request.environ), name='flask_report_notification' + str(id_),
-                                      **notification.crontab._asdict())
+        self.sched.add_cron_job(_closure(request.environ),
+                                name='flask_report_notification' + str(id_),
+                                **notification.crontab._asdict())
         notification.enabled = True
         notification.dump()
         return 'ok'
@@ -399,13 +369,16 @@ class FlaskReport(object):
                 result = {}
                 for current in filters:
                     if current["col"] not in result:
-                        result[current["col"]] = {'operator': current["op"], 'value': current["val"],
+                        result[current["col"]] = {'operator': current["op"],
+                                                  'value': current["val"],
                                                   'proxy': current['proxy']}
                     else:
                         val = result[current["col"]]
                         if not isinstance(val, list):
                             val = [val]
-                        val.append({'operator': current["op"], 'value': current["val"], 'proxy': current['proxy']})
+                        val.append({'operator': current["op"],
+                                    'value': current["val"],
+                                    'proxy': current['proxy']})
                         result[current["col"]] = val
                 return result
 
@@ -414,10 +387,14 @@ class FlaskReport(object):
             if request.args.get('preview'):
                 name += '(' + _('Preview') + ')'
                 id = 0
-            report_id = create_report(form.data_set, name=name, creator=form.creator.data,
-                                      description=form.description.data, id=id, columns=form.columns.data,
-                                      filters=parse_filters(json.loads(form.filters.data)))
-            return jsonify({'id': report_id, 'name': form.name.data, 'url': url_for('.report', id_=report_id)})
+            report_id = create_report(form.data_set, name=name,
+                                      creator=form.creator.data,
+                                      description=form.description.data,
+                                      id=id, columns=form.columns.data,
+                                      filters=parse_filters(
+                                          json.loads(form.filters.data)))
+            return jsonify({'id': report_id, 'name': form.name.data,
+                            'url': url_for('.report', id_=report_id)})
         else:
             return jsonify({'errors': form.errors}), 403
 
@@ -430,7 +407,8 @@ class _ReportForm(Form):
     def validate_data_set_id(self, e):
         try:
             self.data_set = DataSet(self.report_view, e.data)
-            self.columns.choices = [(str(c['idx']), c['name']) for c in self.data_set.columns]
+            self.columns.choices = [(str(c['idx']), c['name']) for c in
+                                    self.data_set.columns]
         except OSError:
             raise validators.ValidationError('invalid dataset')
 
@@ -438,5 +416,6 @@ class _ReportForm(Form):
     creator = TextField('createor')
     description = TextField('description')
     data_set_id = IntegerField('data_set_id', [validators.Required()])
-    columns = SelectMultipleField('columns', [validators.Required()], choices=[])
+    columns = SelectMultipleField('columns',
+                                  [validators.Required()], choices=[])
     filters = TextField('filters')
