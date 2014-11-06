@@ -92,7 +92,7 @@
         }
       }
 
-      $("[name=remove-tr]").live("click", function () {
+      $("[name=remove-tr]").click(function () {
         $(this).closest("[name=filter]").remove();
       });
 
@@ -132,7 +132,7 @@
       $('button[data-role="new-filter"]').click(function () {
         return false;
       });
-      $('[data-role="filters-selector"] a').live('click', function () {
+      $('[data-role="filters-selector"] a').click(function () {
         var e = $(this);
         $("#clause").addFilter(e.attr('data-value'), e.text(), $.parseJSON(e.attr("data-ops")), e.attr("data-type"), $.parseJSON(e.attr("data-opts")), '', '', e.attr('data-proxy'));
         $('button[data-role="new-filter"]').popover('hide');
