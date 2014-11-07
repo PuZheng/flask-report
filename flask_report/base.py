@@ -362,6 +362,7 @@ class FlaskReport(object):
 
     def new_report(self):
 
+        import pudb; pudb.set_trace()
         form = _ReportForm(self, request.form)
 
         if form.validate():

@@ -12,4 +12,3 @@ filters:
     operators: [eq, ne]
   #sum(User.impact):
     #operators: [eq, ne]
-
