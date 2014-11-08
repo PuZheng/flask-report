@@ -361,8 +361,6 @@ class FlaskReport(object):
         return json.dumps([str(job) for job in self.sched.get_jobs()])
 
     def new_report(self):
-
-        import pudb; pudb.set_trace()
         form = _ReportForm(self, request.form)
 
         if form.validate():

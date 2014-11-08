@@ -4,6 +4,10 @@
   {{ data_set.name }}
 {% endblock %}
 
+{% block report____head_block %}
+  {{ super() }}
+  <link href="http://cdn.bootcss.com/bootstrap-datetimepicker/3.1.3/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+{% endblock %}
 
 {% block body %}
   <div class="panel panel-info">
@@ -89,19 +93,6 @@
     </div>
   </form>
 
-  <!--<div data-role='filters-popover-content' class='hide'>-->
-    <!--<ul class='nav nav-pills nav-stacked' data-role='filters-selector'>-->
-      <!--{% for filter in data_set.filters %}-->
-        <!--<li>-->
-          <!--<a data-value="{{ filter.col }}" data-type="{{ filter.type }}"-->
-             <!--data-ops='{{ filter.ops|tojson|safe }}'-->
-              <!--{% if filter.opts %} data-opts='{{ filter.opts|tojson|safe }}'{% endif %}-->
-             <!--data-proxy={{ 'true' if filter.proxy else 'false' }}>{{ filter.name }}</a>-->
-        <!--</li>-->
-      <!--{% endfor %}-->
-    <!--</ul>-->
-  <!--</div>-->
-
   <div class="modal fade modal-new-filter" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -133,6 +124,8 @@
   <script src="http://cdn.bootcss.com/autosize.js/1.18.14/jquery.autosize.min.js"></script>
   <script src="http://cdn.bootcss.com/sprintf/1.0.2/sprintf.min.js"></script>
   <script src="http://cdn.bootcss.com/handlebars.js/2.0.0-beta.1/handlebars.min.js"></script>
+  <script src="http://cdn.bootcss.com/moment.js/2.8.3/moment-with-locales.min.js"></script>
+  <script src="http://cdn.bootcss.com/bootstrap-datetimepicker/3.1.3/js/bootstrap-datetimepicker.min.js"></script>
   <script id="filter-template" type="text/x-handlebars-template">
     {% raw %}
     <div class="form-group">
@@ -213,51 +206,6 @@
       ];
       jQuery.fn.addFilter = function (col, text, availOps, 
         type, availVals, value, proxy) {
-        var select = $("<select></select>");
-        $.each([
-          {"key": "eq", "value": "等于"},
-          {"key": "gt", "value": "大于"},
-          {"key": "lt", "value": "小于"},
-          {"key": "ge", "value": "大于等于"},
-          {"key": "le", "value": "小于等于"},
-          {"key": "ne", "value": "不等于"}
-        ], function (idx, opt) {
-          if (availOps) {
-            if ($.inArray(opt.key, availOps) != -1) {
-              select.append($("<option></option>").val(opt.key).text(opt.value));
-            }
-          } else {
-            select.append($("<option></option>").val(opt.key).text(opt.value));
-          }
-        });
-        select.addClass("form-control");
-        var control = $("<div></div>").addClass("col-lg-3").html(select);
-        var input_str = "<input type='text' class='mb0' required></input>";
-
-        var input = $(input_str);
-        if (type) {
-          if (type == "date") {
-            input.datetimepicker({format: 'yyyy-mm-dd', minView: "month", autoclose: true, language: "{{ g.locale }}", pickerPosition: "bottom-left"});
-          } else if (type == "datetime") {
-            input.datetimepicker({format: 'yyyy-mm-dd hh:ii', autoclose: true, language: "{{ g.locale }}", minuteStep: 1, pickerPosition: "bottom-left"})
-          } else if (type == "select" && availVals) {
-            input = $("<select></select>");
-            $.each(availVals, function (idx, option) {
-              input.append($("<option></option>").val(option[0]).text(option[1]));
-            });
-          } else {
-            input_str = input_str.replace("text", type);
-            input = $(input_str);
-          }
-        }
-
-        if (value) {
-          input.val(value)
-        }
-        input.attr("data-col", col);
-        input.attr('data-proxy', proxy);
-        input.addClass("form-control");
-        control.append(input);
         var $el = $(template({
                       text: text, 
                       options: allOps.filter(function (op, idx) {
@@ -273,16 +221,10 @@
             $el.find('.filter-val input').datetimepicker({format: 'yyyy-mm-dd hh:ii', autoclose: true, language: "{{ g.locale }}", minuteStep: 1, pickerPosition: "bottom-left"})
         }
         $el.find('select').select2();
+        $el.find(".btn-remove-filter").click(function () {
+            $(this).closest(".form-group").remove();
+        });
       };
-
-      {% for filter in data_set.filters %}
-        $("#clause").addFilter('{{filter.col}}', '{{filter.name}}', 
-            {{filter.ops|tojson|safe}}, 
-            '{{filter.type}}', 
-            {{filter.opts|tojson|safe}}, 
-            '{{filter.val}}', 
-            {{'true' if filter.proxy else 'false' }});
-      {% endfor %}
 
       function getFilters() {
         var form = $("#main-form");
@@ -301,10 +243,6 @@
           $("input[name=filters]").attr('value', JSON.stringify(filters));
         }
       }
-
-      $(".btn-remove-filter").click(function () {
-        $(this).closest(".form-group").remove();
-      });
 
       $("#temp-save").click(function () {
         getFilters();
