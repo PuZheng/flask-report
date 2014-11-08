@@ -7,6 +7,7 @@
 {% block report____head_block %}
   {{ super() }}
   <link href="http://cdn.bootcss.com/bootstrap-datetimepicker/3.1.3/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+  <link href="{{ url_for('report____.static', filename='vendors/sweetalert/lib/sweet-alert.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block body %}
@@ -126,6 +127,7 @@
   <script src="http://cdn.bootcss.com/handlebars.js/2.0.0-beta.1/handlebars.min.js"></script>
   <script src="http://cdn.bootcss.com/moment.js/2.8.3/moment-with-locales.min.js"></script>
   <script src="http://cdn.bootcss.com/bootstrap-datetimepicker/3.1.3/js/bootstrap-datetimepicker.min.js"></script>
+  <script src="{{ url_for("report____.static", filename="vendors/sweetalert/lib/sweet-alert.min.js") }}"></script>
   <script id="filter-template" type="text/x-handlebars-template">
     {% raw %}
     <div class="form-group">
@@ -253,11 +255,18 @@
       $('button[data-role="save-report-btn"]').click(function () {
         var form = $("#main-form");
         if (form.get(0).checkValidity()) {
-          getFilters();
-          $.post('{{ url_for(".new_report") }}', data = $('#main-form').serialize(),function (data) {
-            if (confirm(sprintf('{{ _("report [%%s] has been created, go to see the report?") }}', data['name']))) {
-              window.open(data['url']);
-            }
+			getFilters();
+			$.post('{{ url_for(".new_report") }}', data = $('#main-form').serialize(),function (data) {
+				swal({   
+				   title: "{{ _("Congratulations") }}",   
+				   text: sprintf('{{ _("report [%%s] has been created, go to see the report?") }}', data['name']),  
+				   type: "success",   
+				   showCancelButton: true,   
+				   confirmButtonText: "{{ _("OK") }}",   
+				   closeOnConfirm: true 
+				   }, function() { 
+					   window.open(data['url']);
+				});
           }).fail(function (data) {
                 alert('{{ _("failed to create new report, reaon is: ") }}' + data.responseText);
               });
