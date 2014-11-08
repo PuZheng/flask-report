@@ -111,7 +111,7 @@ class DataSet(object):
                 default = "select"
 
             result = {"name": get_label_name(v.get("name"), column),
-                      "col": k, "ops": v.get("operators"), 'shown': v.get('shown'),
+                      "col": k, "ops": v.get("operators"),
                       "type": _get_type(v.get("value_type"), default),
                       'opts': [], 'proxy': False}
 
@@ -130,7 +130,6 @@ class DataSet(object):
                 'name': f.name,
                 'col': f.name,
                 'ops': f.operators,
-                'shown': f.shown,
                 'type': f.type,
                 'opts': f.options,
                 'proxy': True

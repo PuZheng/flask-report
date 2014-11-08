@@ -133,7 +133,60 @@
 {% block report____footer_block %}
   <script src="http://cdn.bootcss.com/autosize.js/1.18.14/jquery.autosize.min.js"></script>
   <script src="http://cdn.bootcss.com/sprintf/1.0.2/sprintf.min.js"></script>
+  <script src="http://cdn.bootcss.com/handlebars.js/2.0.0-beta.1/handlebars.min.js"></script>
+  <script id="filter-template" type="text/x-handlebars-template">
+    {% raw %}
+    <div class="form-group">
+      <label class="control-label col-sm-2">
+        <button class="btn btn-xs btn-danger btn-remove-filter" type="button">
+          <i class="fa fa-times"></i>
+        </button>
+        {{text}}
+      </label>
+      <div class="col-sm-3">
+        <select class='form-control'>
+          {{#each options}}
+          <option value="{{value}}" >{{name}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="col-sm-3">
+        {{#ifCond type '==' 'select'}}
+          <select>
+            {{#each availVals}}
+            {{/each}}
+          </select>
+        {{else}}
+          <input type="{{type}}" class='form-control' required data-col="{{col}}">
+        {{/ifCond}}
+      </div>
+    </div>
+    {% endraw %}
+  </script>
   <script type="text/javascript">
+    var template = Handlebars.compile($("#filter-template").html());
+    Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
+        switch (operator) {
+            case '==':
+                return (v1 == v2) ? options.fn(this) : options.inverse(this);
+            case '===':
+                return (v1 === v2) ? options.fn(this) : options.inverse(this);
+            case '<':
+                return (v1 < v2) ? options.fn(this) : options.inverse(this);
+            case '<=':
+                return (v1 <= v2) ? options.fn(this) : options.inverse(this);
+            case '>':
+                return (v1 > v2) ? options.fn(this) : options.inverse(this);
+            case '>=':
+                return (v1 >= v2) ? options.fn(this) : options.inverse(this);
+            case '&&':
+                return (v1 && v2) ? options.fn(this) : options.inverse(this);
+            case '||':
+                return (v1 || v2) ? options.fn(this) : options.inverse(this);
+            default:
+                return options.inverse(this);
+        }
+    });
     $(function () {
       $('select').select2({width: "resolve"});
       $('button[data-role="new-filter"]').click(function () {
@@ -142,19 +195,24 @@
       $('[data-role="filters-selector"] a').dblclick(function () {
         var e = $(this);
         $('.modal-new-filter').modal('hide');
-        debugger;
         $("#clause").addFilter(e.attr('data-value'), 
           e.text(), 
           $.parseJSON(e.attr("data-ops")), 
           e.attr("data-type"), 
           $.parseJSON(e.attr("data-opts")), 
-          '', '', 
+          '', 
           e.attr('data-proxy'));
       });
-      jQuery.fn.addFilter = function (col, text, available_opts, type, avalialed_values, op, value, proxy) {
-        var label = $("<div></div>").addClass("control-label col-lg-2").html(
-            $("<button type='button' class='btn btn-danger' name='remove-tr'></button>").html(
-            $("<i class='fa fa-times'></i>"))).append(text);
+      var allOps = [
+          {"value": "eq", "name": "{{ _('equal to') }}"},
+          {"value": "gt", "name": "{{ _('bigger than') }}"},
+          {"value": "lt", "name": "{{ _('less than') }}"},
+          {"value": "ge", "name": "{{ _('greater than or equal to') }}"},
+          {"value": "le", "name": "{{ _('less than or equal to') }}"},
+          {"value": "ne", "name": "{{ _('not equal to') }}"}
+      ];
+      jQuery.fn.addFilter = function (col, text, availOps, 
+        type, availVals, value, proxy) {
         var select = $("<select></select>");
         $.each([
           {"key": "eq", "value": "等于"},
@@ -164,17 +222,14 @@
           {"key": "le", "value": "小于等于"},
           {"key": "ne", "value": "不等于"}
         ], function (idx, opt) {
-          if (available_opts) {
-            if ($.inArray(opt.key, available_opts) != -1) {
+          if (availOps) {
+            if ($.inArray(opt.key, availOps) != -1) {
               select.append($("<option></option>").val(opt.key).text(opt.value));
             }
           } else {
             select.append($("<option></option>").val(opt.key).text(opt.value));
           }
         });
-        if (op) {
-          select.val(op);
-        }
         select.addClass("form-control");
         var control = $("<div></div>").addClass("col-lg-3").html(select);
         var input_str = "<input type='text' class='mb0' required></input>";
@@ -185,9 +240,9 @@
             input.datetimepicker({format: 'yyyy-mm-dd', minView: "month", autoclose: true, language: "{{ g.locale }}", pickerPosition: "bottom-left"});
           } else if (type == "datetime") {
             input.datetimepicker({format: 'yyyy-mm-dd hh:ii', autoclose: true, language: "{{ g.locale }}", minuteStep: 1, pickerPosition: "bottom-left"})
-          } else if (type == "select" && avalialed_values) {
+          } else if (type == "select" && availVals) {
             input = $("<select></select>");
-            $.each(avalialed_values, function (idx, option) {
+            $.each(availVals, function (idx, option) {
               input.append($("<option></option>").val(option[0]).text(option[1]));
             });
           } else {
@@ -203,15 +258,26 @@
         input.attr('data-proxy', proxy);
         input.addClass("form-control");
         control.append(input);
-        var div = $("<div name='filter'></div>").addClass("form-group").append(label, control);
-        $("#clause").append(div);
+        //var div = $("<div name='filter'></div>").addClass("form-group").append(label, control);
+        $("#clause").append(template({
+                      text: text, 
+                      options: allOps.filter(function (op, idx) {
+                          return !availOps || $.inArray(op.value, availOps) != -1
+                        }),
+                      col: col,
+                      type: type,
+                      availVals: availVals,
+                      }));
         $('select').select2({width: "resolve"});
       };
 
       {% for filter in data_set.filters %}
-        {% if filter.shown %}
-          $("#clause").addFilter('{{filter.col}}', '{{filter.name}}', {{filter.ops|tojson|safe}}, '{{filter.type}}', {{filter.opts|tojson|safe}}, '{{filter.op}}', '{{filter.val}}', {{'true' if filter.proxy else 'false' }});
-        {% endif %}
+        $("#clause").addFilter('{{filter.col}}', '{{filter.name}}', 
+            {{filter.ops|tojson|safe}}, 
+            '{{filter.type}}', 
+            {{filter.opts|tojson|safe}}, 
+            '{{filter.val}}', 
+            {{'true' if filter.proxy else 'false' }});
       {% endfor %}
 
       function getFilters() {
@@ -232,8 +298,8 @@
         }
       }
 
-      $("[name=remove-tr]").click(function () {
-        $(this).closest("[name=filter]").remove();
+      $(".btn-remove-filter").click(function () {
+        $(this).closest(".form-group").remove();
       });
 
       $("#temp-save").click(function () {
