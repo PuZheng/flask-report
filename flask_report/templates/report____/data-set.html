@@ -78,7 +78,6 @@
           </button>
         </legend>
         <div id="clause">
-
         </div>
       </fieldset>
     {% endif %}
@@ -150,10 +149,11 @@
           {{/each}}
         </select>
       </div>
-      <div class="col-sm-3">
+      <div class="col-sm-3 filter-val">
         {{#ifCond type '==' 'select'}}
           <select>
             {{#each availVals}}
+              <option value="{{this.[0]}}" >{{this.[1]}}</option>
             {{/each}}
           </select>
         {{else}}
@@ -258,8 +258,7 @@
         input.attr('data-proxy', proxy);
         input.addClass("form-control");
         control.append(input);
-        //var div = $("<div name='filter'></div>").addClass("form-group").append(label, control);
-        $("#clause").append(template({
+        var $el = $(template({
                       text: text, 
                       options: allOps.filter(function (op, idx) {
                           return !availOps || $.inArray(op.value, availOps) != -1
@@ -267,8 +266,13 @@
                       col: col,
                       type: type,
                       availVals: availVals,
-                      }));
-        $('select').select2({width: "resolve"});
+                      })).appendTo($("#clause"))
+        if (type == 'date') {
+            $el.find('.filter-val input').datetimepicker({format: 'yyyy-mm-dd', minView: "month", autoclose: true, language: "{{ g.locale }}", pickerPosition: "bottom-left"});
+        } else if (type == 'datetime') {
+            $el.find('.filter-val input').datetimepicker({format: 'yyyy-mm-dd hh:ii', autoclose: true, language: "{{ g.locale }}", minuteStep: 1, pickerPosition: "bottom-left"})
+        }
+        $el.find('select').select2();
       };
 
       {% for filter in data_set.filters %}
