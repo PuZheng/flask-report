@@ -8,6 +8,7 @@
   {{ super() }}
   <link href="http://cdn.bootcss.com/bootstrap-datetimepicker/3.1.3/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
   <link href="{{ url_for('report____.static', filename='vendors/sweetalert/lib/sweet-alert.css') }}" rel="stylesheet">
+  <link href="{{ url_for('report____.static', filename='vendors/parsley/parsley.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block body %}
@@ -34,7 +35,7 @@
       {% endif %}
     </div>
   </div>
-  <form action="#" method="POST" id="main-form" class='form-horizontal col-lg-12'>
+  <form action="#" method="POST" id="main-form" class='form-horizontal col-lg-12' data-parsley-validate>
     <fieldset>
       <legend>{{ _('Basic Information') }}</legend>
       <div class="form-group">
@@ -127,6 +128,7 @@
   <script src="http://cdn.bootcss.com/handlebars.js/2.0.0-beta.1/handlebars.min.js"></script>
   <script src="http://cdn.bootcss.com/moment.js/2.8.3/moment-with-locales.min.js"></script>
   <script src="http://cdn.bootcss.com/bootstrap-datetimepicker/3.1.3/js/bootstrap-datetimepicker.min.js"></script>
+  <script src="http://cdn.bootcss.com/parsley.js/2.0.5/parsley.min.js"></script>
   <script src="{{ url_for("report____.static", filename="vendors/sweetalert/lib/sweet-alert.min.js") }}"></script>
   <script id="filter-template" type="text/x-handlebars-template">
     {% raw %}
@@ -190,12 +192,12 @@
       $('[data-role="filters-selector"] a').dblclick(function () {
         var e = $(this);
         $('.modal-new-filter').modal('hide');
-        $("#clause").addFilter(e.attr('data-value'), 
-          e.text(), 
-          $.parseJSON(e.attr("data-ops")), 
-          e.attr("data-type"), 
-          $.parseJSON(e.attr("data-opts")), 
-          '', 
+        $("#clause").addFilter(e.attr('data-value'),
+          e.text(),
+          $.parseJSON(e.attr("data-ops")),
+          e.attr("data-type"),
+          $.parseJSON(e.attr("data-opts")),
+          '',
           e.attr('data-proxy'));
       });
       var allOps = [
@@ -206,10 +208,10 @@
           {"value": "le", "name": "{{ _('less than or equal to') }}"},
           {"value": "ne", "name": "{{ _('not equal to') }}"}
       ];
-      jQuery.fn.addFilter = function (col, text, availOps, 
+      jQuery.fn.addFilter = function (col, text, availOps,
         type, availVals, value, proxy) {
         var $el = $(template({
-                      text: text, 
+                      text: text,
                       options: allOps.filter(function (op, idx) {
                           return !availOps || $.inArray(op.value, availOps) != -1
                         }),
@@ -253,25 +255,26 @@
       });
 
       $('button[data-role="save-report-btn"]').click(function () {
-        var form = $("#main-form");
-        if (form.get(0).checkValidity()) {
-			getFilters();
-			$.post('{{ url_for(".new_report") }}', data = $('#main-form').serialize(),function (data) {
-				swal({   
-				   title: "{{ _("Congratulations") }}",   
-				   text: sprintf('{{ _("report [%%s] has been created, go to see the report?") }}', data['name']),  
-				   type: "success",   
-				   showCancelButton: true,   
-				   confirmButtonText: "{{ _("OK") }}",   
-				   closeOnConfirm: true 
-				   }, function() { 
-					   window.open(data['url']);
-				});
-          }).fail(function (data) {
-                alert('{{ _("failed to create new report, reaon is: ") }}' + data.responseText);
+          debugger;
+        var parsley = $("#main-form").parsley();
+        if (parsley.validate()) {
+            getFilters();
+            $.post('{{ url_for(".new_report") }}', data = $('#main-form').serialize(),function (data) {
+              swal({
+                 title: "{{ _("Congratulations") }}",
+                 text: sprintf('{{ _("report [%%s] has been created, go to see the report?") }}', data['name']),
+                 type: "success",
+                 showCancelButton: true,
+                 confirmButtonText: "{{ _("OK") }}",
+                 closeOnConfirm: true
+                 }, function() {
+                   window.open(data['url']);
               });
-          return false;
-        }
+                }).fail(function (data) {
+                      alert('{{ _("failed to create new report, reaon is: ") }}' + data.responseText);
+                    });
+                return false;
+              }
       });
       $('button[data-role="preview-btn"]').click(function () {
         var form = $("#main-form");
