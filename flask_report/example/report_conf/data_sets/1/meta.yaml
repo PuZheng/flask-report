@@ -4,7 +4,8 @@ creator: 智冠
 create_time: 2013-07-02 07:30:00
 default_report_name: xxxx报表
 filters:
-  Group.name:
+  User.group:
+    name: 国家
     operators: [eq, ne]
     shown: true
   User.impact:
@@ -12,4 +13,3 @@ filters:
     operators: [eq, ne]
   #sum(User.impact):
     #operators: [eq, ne]
-
