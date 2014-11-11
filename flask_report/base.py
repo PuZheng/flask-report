@@ -9,7 +9,7 @@ import csv
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import (render_template, request, url_for, redirect, flash, jsonify,
                    Response, Blueprint)
-from flask.ext.mail import Mail, Message
+from flask.ext.mail import Message
 from flask.ext.babel import _
 from wtforms import (Form, TextField, validators, IntegerField,
                      SelectMultipleField)
@@ -25,8 +25,41 @@ from flask.ext.report.utils import get_column_operated, query_to_sql, dump_yaml
 
 class FlaskReport(object):
 
-    def __init__(self, db, model_map, app, blueprint=None, extra_params=None,
+    def __init__(self, app, db, models, blueprint=None, extra_params=None,
                  table_label_map=None, mail=None):
+        '''
+        This is the class that add reports to a flask app.
+
+        the usage is:
+
+            app = Flask(__name__)
+            db = SQLAlchemy(app)
+            FlaskReport(app, db, )
+
+        :param app: flask app instance
+        :param db: database instance
+        :param models: a list of models
+        :param flaks.Blueprint blueprint: provide blueprint if you want register
+            web pages under this blueprint
+        :param dict extra_params: extra template parameters for each page, you
+            may want to use them when you override default templates, for
+            example, add a navigation bar. The keys include:
+
+                * data-set-list
+                * data-set
+                * report-list
+                * report
+                * notification
+                * notification-list
+
+            they correspond to pages with the same filename plus suffix 'html'.
+            The values are the parameters provided to each page, they may be
+            functions with no args if you want lazy evaluation
+        :param dict table_label_map: a dict from table to label, the keys are
+            the table name, the values are the labels of each table
+        :param mail: the mail instance if you want send email, see
+            `Flask-Mail <https://pypi.python.org/pypi/Flask-Mail>`_
+        '''
         self.db = db
         self.app = app
         host = blueprint or app
@@ -34,10 +67,8 @@ class FlaskReport(object):
         self.report_dir = os.path.join(self.conf_dir, "reports")
         self.notification_dir = os.path.join(self.conf_dir, "notifications")
         self.data_set_dir = os.path.join(self.conf_dir, "data_sets")
-        self.model_map = model_map  # model name -> model
         self.table_label_map = table_label_map or {}
-        self.table_map = dict((model.__tablename__, model) for model in
-                              model_map.values())  # table name -> model
+        self.model_map = dict((model.__name__, model) for model in models)
         if not os.path.exists(self.conf_dir):
             os.makedirs(self.conf_dir)
         if not os.path.exists(self.report_dir):
@@ -87,9 +118,9 @@ class FlaskReport(object):
             return '{' + ','.join('%s:%s' % (k, v) for k, v in value.items()) \
                 + '}'
 
-        self.mail = mail or Mail(self.app)
-        self.sched = BackgroundScheduler()
-        if app.config.get('FLASK_REPORT_SEND_NOTIFICATION'):
+        if mail:
+            self.mail = mail
+            self.sched = BackgroundScheduler()
             self.sched.start()
 
             with app.test_request_context():
@@ -98,12 +129,27 @@ class FlaskReport(object):
                         self.start_notification(notification.id_)
 
     def try_view_report(self):
+        '''
+        this function will be invoked before accessing report or report-list,
+        throw an exception if you don't want them to be accessed,
+        I prefer *flask.ext.principal.PermissionDenied* personally
+        '''
         pass
 
     def try_edit_data_set(self):
+        '''
+        this function will be invoked before creating/editing data set,
+        throw an exception if you don't want them to be accessed,
+        I prefer *flask.ext.principal.PermissionDenied* personally
+        '''
         pass
 
     def try_edit_notification(self):
+        '''
+        this function will be invoked before creating/editing notification
+        throw an exception if you don't want them to be accessed,
+        I prefer *flask.ext.principal.PermissionDenied* personally
+        '''
         pass
 
     def report_graphs(self, id_):
@@ -119,12 +165,12 @@ class FlaskReport(object):
                      os.listdir(self.data_set_dir) if
                      dir_name.isdigit() and dir_name != '0']
         params = dict(data_sets=data_sets)
-        extra_params = self.extra_params.get("data_sets")
+        extra_params = self.extra_params.get("data-sets")
         if extra_params:
             if isinstance(extra_params, types.FunctionType):
                 extra_params = extra_params()
             params.update(extra_params)
-        return render_template("report____/data-sets.html", **params)
+        return render_template("report____/data-set-list.html", **params)
 
     def data_set(self, id_):
         self.try_edit_data_set()
@@ -132,7 +178,7 @@ class FlaskReport(object):
         SQL_html = highlight(query_to_sql(data_set.query), SqlLexer(),
                              HtmlFormatter())
         params = dict(data_set=data_set, SQL=SQL_html)
-        extra_params = self.extra_params.get('data_set')
+        extra_params = self.extra_params.get('data-set')
         if extra_params:
             if isinstance(extra_params, types.FunctionType):
                 extra_params = extra_params(id_)
@@ -149,7 +195,7 @@ class FlaskReport(object):
         # directory 0 is reserved for special purpose
         reports = self._get_report_list()
         params = dict(reports=reports)
-        extra_params = self.extra_params.get('report_list')
+        extra_params = self.extra_params.get('report-list')
         if extra_params:
             if isinstance(extra_params, types.FunctionType):
                 extra_params = extra_params()
@@ -247,7 +293,7 @@ class FlaskReport(object):
                          in os.listdir(self.notification_dir) if
                          dir_name.isdigit() and dir_name != '0']
         params = dict(notification_list=notifications)
-        extra_params = self.extra_params.get("notification_list")
+        extra_params = self.extra_params.get("notification-list")
         if extra_params:
             if isinstance(extra_params, types.FunctionType):
                 extra_params = extra_params()
@@ -311,6 +357,7 @@ class FlaskReport(object):
     def push_notification(self, id_):
         to = request.args.get('to')
         notification = Notification(self, id_)
+        # don't use sender, use recipient instead
         if not to:
             senders = notification.senders
         else:
@@ -323,6 +370,7 @@ class FlaskReport(object):
         html = notification.template.render(notification=notification)
         msg = Message(subject=notification.subject,
                       html=html,
+                      # TODO where sender come from
                       sender="lite_mms@163.com",
                       recipients=senders)
         self.mail.send(msg)

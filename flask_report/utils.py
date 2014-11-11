@@ -1,22 +1,18 @@
 # -*- coding: UTF-8 -*-
 import os
+import re
 
 import yaml
 import sqlalchemy
 import operator
 from flask.ext.babel import _
 
-_NONE = object()
 AGGREGATE_FUNC = ["sum", "avg", "max", "min", "count"]
 
+
 def collect_models(module):
-    ret = {}
-
-    for k, v in module.__dict__.items():
-        if hasattr(v, '_sa_class_manager'):
-            ret[k] = v
-    return ret
-
+    return [v for v in module.__dict__.values() if
+            hasattr(v, '_sa_class_manager')]
 
 def get_primary_key(model):
     """
@@ -136,16 +132,16 @@ def dump_to_yaml(obj):
 
 
 def get_column_operator(filter_key, columns, report_view):
-    col = _NONE
+    col = None
     try:
         if "(" not in filter_key and ")" not in filter_key:
             model_name, column_name = filter_key.split(".")
             col = operator.attrgetter(column_name)(report_view.model_map[model_name])
         else:
-            import re
 
             model_name, column_name = re.split("[()]", filter_key)[1].split(".")
-            filter_key = filter_key.replace(model_name, report_view.model_map[model_name].__table__.name)
+            filter_key = filter_key.replace(model_name,
+                                            report_view.model_map[model_name].__table__.name)
             for c in columns:
                 if filter_key == c["key"]:
                     col = c["expr"]
@@ -155,12 +151,12 @@ def get_column_operator(filter_key, columns, report_view):
             if filter_key == c["name"]:
                 if "(" not in c["key"] and ")" not in c["key"]:
                     model_name, column_name = c["key"].split(".")
-                    col = operator.attrgetter(column_name)(report_view.table_map[model_name])
+                    col = operator.attrgetter(column_name)(report_view.model_map[model_name])
                 else:
                     col = c["expr"]
                 break
     finally:
-        if col is _NONE:
+        if col is None:
             raise ValueError(_("No Such Column"))
         else:
             try:
