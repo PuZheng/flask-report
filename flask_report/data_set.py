@@ -1,6 +1,8 @@
 # -*- coding: UTF-8 -*-
 import os
 import operator
+import types
+
 import yaml
 from import_file import import_file
 from werkzeug.utils import cached_property
@@ -8,12 +10,15 @@ import sqlalchemy
 from flask.ext.babel import _
 
 
-_NONE = object()
 _TYPES = {"str": "text", "int": "number", "bool": "checkbox",
           "datetime": "datetime", "date": "date"}
 
 
 class DataSet(object):
+    '''
+    data set defines the source of data
+    '''
+
     def __init__(self, report_view, id_):
         self.report_view = report_view
         self.id_ = id_
@@ -32,6 +37,9 @@ class DataSet(object):
 
     @cached_property
     def query(self):
+        '''
+
+        '''
         query_def_file = os.path.join(self.report_view.data_set_dir,
                                       str(self.id_), "query_def.py")
         lib = import_file(query_def_file)
@@ -82,7 +90,8 @@ class DataSet(object):
         def get_label_name(name, column):
             if not name:
                 for c in self.columns:
-                    if c["key"] == str(column.expression) or c["expr"] == column:
+                    if c["key"] == str(column.expression) or \
+                            c["expr"] == column:
                         name = c["name"]
                         break
                 else:
@@ -90,7 +99,6 @@ class DataSet(object):
             return name
 
         def _get_type(type_, default=None):
-            import types
             if isinstance(default, types.TypeType):
                 default = _TYPES.get(default.__name__)
             else:
@@ -115,7 +123,8 @@ class DataSet(object):
                       "type": _get_type(v.get("value_type"), default),
                       'opts': [], 'proxy': False}
 
-            if hasattr(column, "property") and hasattr(column.property, "direction"):
+            if hasattr(column, "property") and hasattr(column.property,
+                                                       "direction"):
                 def _iter_choices(column):
                     model = column.property.mapper.class_
                     from flask.ext.report.utils import get_primary_key
