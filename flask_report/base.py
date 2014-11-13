@@ -6,7 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Blueprint
 
 from flask.ext.report import views
-from flask.ext.report.notification import get_all_notifications
+from flask.ext.report.notification import Notification
 from flask.ext.report.report import Report
 
 
@@ -89,11 +89,12 @@ class FlaskReport(object):
                           functools.partial(views.data_set, self))
         host.add_url_rule("/notification-list", 'notification_list',
                           functools.partial(views.notification_list, self))
-        host.add_url_rule("/notification/", 'notification',
-                          functools.partial(views.notification, self),
-                          methods=['POST'])
+        view_func = functools.partial(views.notification, self)
         host.add_url_rule("/notification/<int:id_>", 'notification',
-                          functools.partial(views.notification, self),
+                          view_func,
+                          methods=['GET', 'POST'])
+        host.add_url_rule("/notification/", 'notification',
+                          view_func,
                           methods=['GET', 'POST'])
         host.add_url_rule("/push_notification/<int:id_>", 'push_notification',
                           functools.partial(views.push_notification, self),
@@ -103,8 +104,8 @@ class FlaskReport(object):
         host.add_url_rule("/stop_notification/<int:id_>", 'stop_notification',
                           functools.partial(views.stop_notification, self))
         host.add_url_rule("/schedule-list",
-                          functools.partial(views.schedule_list, self),
-                          'schedule_list')
+                          'schedule_listl',
+                          functools.partial(views.schedule_list, self))
 
         # register it for using the templates of data browser
         self.blueprint = Blueprint("report____", __name__,
@@ -132,9 +133,17 @@ class FlaskReport(object):
             self.sched.start()
 
             with app.test_request_context():
-                for notification in get_all_notifications(self):
+                for notification in self.notifications:
                     if notification.enabled:
                         self.start_notification(notification.id_)
+
+    @property
+    def notifications(self):
+        if os.path.exists(self.notification_dir):
+            return [Notification(self, id_) for id_ in
+                    os.listdir(self.notification_dir)]
+        else:
+            return []
 
     @property
     def model_map(self):

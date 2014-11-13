@@ -305,6 +305,6 @@ def stop_notification(flask_report, id_):
 def report_graphs(flask_report, id_):
     report = Report(flask_report, id_)
     return render_template("report____/graphs.html",
-                            url=request.args.get("url"),
-                            bar_charts=report.bar_charts,
-                            name=report.name, pie_charts=report.pie_charts)
+                           url=request.args.get("url"),
+                           bar_charts=report.bar_charts,
+                           name=report.name, pie_charts=report.pie_charts)

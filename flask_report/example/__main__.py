@@ -5,6 +5,7 @@ from flask.ext.report import utils
 from basemain import app, db
 import models
 
+
 def main():
     from flask.ext import report
     from flask import Blueprint

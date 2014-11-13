@@ -1,31 +1,28 @@
 # -*- coding: UTF-8 -*-
-
 import os
 import operator
 import copy
 import codecs
-from collections import namedtuple
-from itertools import izip
 from functools import partial
 import datetime
 import shutil
+import uuid
 
 import sqlalchemy
 from flask import render_template, url_for
 import yaml
 from import_file import import_file
 from flask.ext.report.data_set import DataSet
-from flask.ext.report.utils import get_primary_key, get_column_operated
 from werkzeug.utils import cached_property
-from jinja2 import Template
-from sqlalchemy import desc, select
 
 
 class Report(object):
+
     def __init__(self, report_view, id_):
         self.report_view = report_view
         self.id_ = id_
-        report_meta_file = os.path.join(self.report_view.report_dir, str(id_), 'meta.yaml')
+        report_meta_file = os.path.join(self.report_view.report_dir, str(id_),
+                                        'meta.yaml')
         report_meta = yaml.load(file(report_meta_file).read())
         self.name = report_meta['name']
         self.creator = report_meta.get('creator')
@@ -34,7 +31,8 @@ class Report(object):
         self.description = report_meta.get("description")
         self.data_set = DataSet(report_view, report_meta['data_set_id'])
         self.__columns = report_meta.get('columns')
-        self.__special_chars = {"gt": operator.gt, "lt": operator.lt, "ge": operator.ge, "le": operator.le,
+        self.__special_chars = {"gt": operator.gt, "lt": operator.lt,
+                                "ge": operator.ge, "le": operator.le,
                                 "eq": operator.eq, "ne": operator.ne}
         self._sum_columns = report_meta.get("sum_columns", [])
         self._avg_columns = report_meta.get("avg_columns", [])
@@ -52,10 +50,13 @@ class Report(object):
         ret = []
         for i in self.__columns:
             col = copy.copy(all_columns[i])
-            col['get_drill_down_link'] = lambda r: None
+            col['get_drill_down_link'] = (lambda r: None)
 
-            if os.path.isdir(os.path.join(self.report_view.report_dir, str(self.id_), "drill_downs", str(i))):
-                col['get_drill_down_link'] = partial(self._gen_drill_down_link, i)
+            if os.path.isdir(
+                os.path.join(self.report_view.report_dir, str(self.id_),
+                             "drill_downs", str(i))):
+                col['get_drill_down_link'] = partial(self._gen_drill_down_link,
+                                                     i)
             if not self._searchable_columns or i in self._searchable_columns:
                 col["searchable"] = True
             ret.append(col)
@@ -76,7 +77,8 @@ class Report(object):
                     if isinstance(col, sqlalchemy.sql.expression.Function):
                         col_name = col_name.replace('"', '')
                 params[col_name] = r[d[col_name]['idx']]
-            return url_for('.drill_down_detail', report_id=self.id_, col_id=col_id, **params)
+            return url_for('.drill_down_detail', report_id=self.id_,
+                           col_id=col_id, **params)
         else:
             return None
 
@@ -111,8 +113,10 @@ class Report(object):
         if self.filters:
             from flask.ext.report.utils import get_column_operator
             for name, params in self.filters.items():
-                column, op_ = get_column_operator(name, self.data_set.columns, self.report_view)
-                if hasattr(column, "property") and hasattr(column.property, "direction"):
+                column, op_ = get_column_operator(name, self.data_set.columns,
+                                                  self.report_view)
+                if hasattr(column, "property") and \
+                        hasattr(column.property, "direction"):
                     column = column.property.local_remote_pairs[0][1]
                 if not isinstance(params, list):
                     params = [params]
@@ -124,7 +128,6 @@ class Report(object):
                         q = q.having(operator_(column, value))
         if self.literal_filter_condition is not None:
             q = q.filter(self.literal_filter_condition)
-        all_columns = dict((c['name'], c) for c in self.data_set.columns)
         return q
 
     @property
@@ -133,53 +136,74 @@ class Report(object):
 
     @cached_property
     def literal_filter_condition(self):
-        filter_def_file = os.path.join(self.report_view.report_dir, str(self.id_), "filter_def.py")
+        filter_def_file = os.path.join(self.report_view.report_dir,
+                                       str(self.id_), "filter_def.py")
         if os.path.exists(filter_def_file):
             lib = import_file(filter_def_file)
-            return lib.get_filter(self.report_view.db, self.report_view.model_map)
+            return lib.get_filter(self.report_view.db,
+                                  self.report_view.model_map)
 
     @property
     def html_template(self):
-        report_file = os.path.join(self.report_view.report_dir, str(self.id_), "report.html")
+        report_file = os.path.join(self.report_view.report_dir, str(self.id_),
+                                   "report.html")
         if not os.path.exists(report_file):
             # read the default report template
-            return self.report_view.app.jinja_env.get_template("report____/report.html")
-        return self.report_view.app.jinja_env.from_string(codecs.open(report_file, encoding='utf-8').read())
+            return self.report_view.app.jinja_env.get_template(
+                "report____/report.html")
+        return self.report_view.app.jinja_env.from_string(
+            codecs.open(report_file, encoding='utf-8').read())
 
     def read_literal_filter_condition(self):
-        filter_def_file = os.path.join(self.report_view.report_dir, str(self.id_), "filter_def.py")
+        filter_def_file = os.path.join(self.report_view.report_dir,
+                                       str(self.id_), "filter_def.py")
         if os.path.exists(filter_def_file):
             return codecs.open(filter_def_file, encoding='utf-8').read()
 
     @property
     def short_description(self):
-        return render_template('report____/report_short_description.html', report=self)
+        return render_template('report____/report_short_description.html',
+                               report=self)
 
     def get_drill_down_detail_template(self, col_id):
-        template_file = os.path.join(self.report_view.report_dir, str(self.id_), "drill_downs", str(col_id), "template.html")
+        template_file = os.path.join(self.report_view.report_dir, str(self.id_),
+                                     "drill_downs", str(col_id),
+                                     "template.html")
         if not os.path.exists(template_file):
             # read the default template
-            return self.report_view.app.jinja_env.get_template("report____/default_drill_down_html_report.html")
-        return self.report_view.app.jinja_env.from_string(codecs.open(template_file, encoding='utf-8').read())
+            return self.report_view.app.jinja_env.get_template(
+                "report____/default_drill_down_html_report.html")
+        return self.report_view.app.jinja_env.from_string(
+            codecs.open(template_file, encoding='utf-8').read())
 
     def get_drill_down_detail(self, col_id, **filters):
-        lib = import_file(os.path.join(self.report_view.report_dir, str(self.id_), "drill_downs", str(col_id), "objects.py"))
-        return lib.objects(self.report_view.db, self.report_view.model_map, **filters)
+        lib = import_file(os.path.join(self.report_view.report_dir,
+                                       str(self.id_), "drill_downs",
+                                       str(col_id), "objects.py"))
+        return lib.objects(self.report_view.db, self.report_view.model_map,
+                           **filters)
 
     @property
     def sum_fields(self):
-        return [{"col": column["name"], "value": sum(d[column["idx"]] or 0 for d in self.data)} for column in
-                self.sum_columns]
+        return [
+            {
+                "col": column["name"],
+                "value": sum(d[column["idx"]] or 0 for d in self.data)
+            } for column in self.sum_columns
+        ]
 
     @property
     def avg_fields(self):
-        return [{"col": column["name"], "value": sum((d[column["idx"]] or 0) for d in self.data) / len(self.data)} for column
-                in self.avg_columns]
+        return [
+            {
+                "col": column["name"],
+                "value":
+                sum((d[column["idx"]] or 0) for d in self.data) / len(self.data)
+            } for column in self.avg_columns]
 
     @property
     def bar_charts(self):
         if self._bar_charts is None:
-            import uuid
 
             self._bar_charts = []
             all_columns = self.data_set.columns
@@ -197,22 +221,29 @@ class Report(object):
                 for idx, i in enumerate(self.data):
                     from flask.ext.report.utils import get_color
                     color1, color2 = get_color(idx, colors, length, False)
-                    dataset = {"fillColor": color1, "strokeColor": color2, "data": [int(i[c["idx"]]) for c in columns]}
+                    dataset = {
+                        "fillColor": color1,
+                        "strokeColor": color2,
+                        "data": [int(i[c["idx"]]) for c in columns]
+                    }
                     display_columns = bar_chart.get("display_columns", [])
-                    name = "(" + ", ".join(unicode(i[all_columns[c]['idx']]) for c in display_columns) + ')'
+                    name = "(" + ", ".join(unicode(i[all_columns[c]['idx']])
+                                           for c in display_columns) + ')'
                     display_names.append(
                         {"name": name, "color": color1})
                     datasets = data.setdefault("datasets", [])
                     datasets.append(dataset)
-                self._bar_charts.append({"name": bar_chart.get("name"), "id_": uuid.uuid1(), "data": data,
-                                         "display_names": display_names})
+                self._bar_charts.append({
+                    "name": bar_chart.get("name"),
+                    "id_": uuid.uuid1(),
+                    "data": data,
+                    "display_names": display_names
+                })
         return self._bar_charts
 
     @property
     def pie_charts(self):
         if self._pie_charts is None:
-            import uuid
-
             all_columns = self.data_set.columns
             self._pie_charts = []
             for pie in self._pie:
@@ -228,21 +259,36 @@ class Report(object):
                     color = get_color(idx, colors, length)
                     data.append({"value": row[column["idx"]], "color": color})
                     display_columns = pie.get("display_columns", [])
-                    name = "(" + ", ".join(unicode(row[all_columns[c]['idx']]) for c in display_columns) + ')'
-                    display_names.append({"name": name, "color": color,
-                                          "distribution": "%.2f%%" % (row[column["idx"]] * 100.0 / total)})
-                result = {"name": pie.get("name"), "id_": uuid.uuid1(), "display_names": display_names, "data": data}
+                    name = "(" + ", ".join(unicode(row[all_columns[c]['idx']])
+                                           for c in display_columns) + ')'
+                    display_names.append({
+                        "name": name,
+                        "color": color,
+                        "distribution":
+                        "%.2f%%" % (row[column["idx"]] * 100.0 / total)
+                    })
+                result = {
+                    "name": pie.get("name"),
+                    "id_": uuid.uuid1(),
+                    "display_names": display_names,
+                    "data": data
+                }
                 self._pie_charts.append(result)
         return self._pie_charts
 
-def create_report(data_set, name, description="", creator="", create_time=None, columns=None, filters=None, id=None):
 
-    create_time = create_time or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def create_report(data_set, name, description="", creator="", create_time=None,
+                  columns=None, filters=None, id=None):
+
+    create_time = create_time or \
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     columns = columns or [c['idx'] for c in data_set.columns]
     filters = filters or {}
 
     if id is None:
-        all_report_dirs = [dir for dir in os.listdir(data_set.report_view.report_dir) if dir.isdigit()]
+        all_report_dirs = [dir for dir in
+                           os.listdir(data_set.report_view.report_dir)
+                           if dir.isdigit()]
         if not all_report_dirs:
             new_report_id = 0
         else:
@@ -250,14 +296,16 @@ def create_report(data_set, name, description="", creator="", create_time=None, 
     else:
         new_report_id = id
 
-    new_report_dir = os.path.join(data_set.report_view.report_dir, str(new_report_id))
+    new_report_dir = os.path.join(data_set.report_view.report_dir,
+                                  str(new_report_id))
     if not os.path.exists(new_report_dir):
         os.mkdir(new_report_dir)
 
     converted_filters = {}
     for k, v in filters.items():
         if v['proxy']:
-            converted_filters.update(data_set.proxy_filter_map[k](v['value']))
+            converted_filters.update(data_set.synthetic_filter_map[k]
+                                     (v['value']))
         else:
             converted_filters[k] = v
 
@@ -274,6 +322,8 @@ def create_report(data_set, name, description="", creator="", create_time=None, 
         yaml.safe_dump(dict_, allow_unicode=True, stream=f)
 
     if os.path.exists(os.path.join(data_set.dir, 'drill_downs')):
-        shutil.rmtree(os.path.join(new_report_dir, 'drill_downs'), ignore_errors=True)
-        shutil.copytree(os.path.join(data_set.dir, 'drill_downs'), os.path.join(new_report_dir, 'drill_downs'))
+        shutil.rmtree(os.path.join(new_report_dir, 'drill_downs'),
+                      ignore_errors=True)
+        shutil.copytree(os.path.join(data_set.dir, 'drill_downs'),
+                        os.path.join(new_report_dir, 'drill_downs'))
     return new_report_id
