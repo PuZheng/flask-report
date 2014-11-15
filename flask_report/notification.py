@@ -7,14 +7,24 @@ from datetime import date
 import yaml
 from flask.ext.report.report import Report
 
+CronTab = namedtuple('CronTab',
+                     ['minute', 'hour', 'day', 'month', 'day_of_week'])
+
 
 class Notification(object):
+    '''
+    notification is a series of sending actions
+    '''
 
-    def __init__(self, report_view, id_):
-        self.report_view = report_view
+    def __init__(self, flask_report, id_):
+        '''
+        :param flask.ext.report.FlaskReport flask_report: flask report instance
+        :param id_: id of the notification
+        '''
+        self.flask_report = flask_report
         self.id_ = id_
 
-        meta_file = os.path.join(self.report_view.notification_dir,
+        meta_file = os.path.join(self.flask_report.notification_dir,
                                  str(id_), 'meta.yaml')
         meta = yaml.load(file(meta_file).read())
         self.name = meta['name']
@@ -29,34 +39,47 @@ class Notification(object):
 
     @property
     def template(self):
-        template_file = os.path.join(self.report_view.notification_dir,
+        '''
+        template of the email content to be sent, firstly, the file
+        "template.html" will be used if it is presented in the notification
+        definition directory, otherwise, 'report____/default_notification.html'
+        will be used
+        '''
+        template_file = os.path.join(self.flask_report.notification_dir,
                                      str(self.id_), "template.html")
         if not os.path.exists(template_file):
-            return self.report_view.app.jinja_env.get_template(
+            return self.flask_report.app.jinja_env.get_template(
                 "report____/default_notification.html")
-        return self.report_view.app.jinja_env.from_string(
+        return self.flask_report.app.jinja_env.from_string(
             codecs.open(template_file, encoding='utf-8').read())
 
     @property
     def subject(self):
-        return self.report_view.app.jinja_env.from_string(
+        '''
+        subject of the notification email, it reads the template string
+        in notification configuration file and feeds it with 2 parameters,
+        date and notification object
+        '''
+        return self.flask_report.app.jinja_env.from_string(
             self.__subject).render(date=date.today(), notification=self)
 
     @property
     def reports(self):
-        return [Report(self.report_view, id_) for id_ in self.report_ids]
+        '''
+        reports to be sent
+        '''
+        return [Report(self.flask_report, id_) for id_ in self.report_ids]
 
     @property
     def crontab(self):
-        CronTab = namedtuple('CronTab',
-                             ['minute', 'hour', 'day', 'month', 'day_of_week'])
+
         return CronTab(*self._crontab.split())
 
     def dump(self):
         '''
-        save notifiction on disk
+        save this notifiction on disk
         '''
-        meta_file = os.path.join(self.report_view.notification_dir,
+        meta_file = os.path.join(self.flask_report.notification_dir,
                                  str(self.id_), 'meta.yaml')
         d = {
             'name': self.name,
