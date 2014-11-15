@@ -2,7 +2,6 @@ name: 三国人物
 description: 三国时期各个国家人物情况
 creator: 智冠 
 create_time: 2013-07-02 07:30:00
-default_report_name: xxxx报表
 filters:
   User.group:
     name: 国家
