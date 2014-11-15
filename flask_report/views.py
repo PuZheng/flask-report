@@ -98,7 +98,7 @@ def report(flask_report, id_=None):
     if id_ is not None:
         report = Report(flask_report, id_)
 
-        code = report.read_literal_filter_condition()
+        code = report.raw_filter_condition
 
         SQL_html = highlight(query_to_sql(report.query), SqlLexer(),
                              HtmlFormatter())
