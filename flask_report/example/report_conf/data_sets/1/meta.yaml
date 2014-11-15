@@ -7,7 +7,6 @@ filters:
   User.group:
     name: 国家
     operators: [eq, ne]
-    shown: true
   User.impact:
     name: 影响力
     operators: [eq, ne]
