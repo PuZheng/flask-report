@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-from sqlalchemy import func
+
 
 def get_query(db, model_map):
     Group = model_map['Group']
