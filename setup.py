@@ -2,7 +2,7 @@
 Flask-Report
 -----
 
-Flask-Report is a micro report framework based on Flask, and other report engines
+Flask-Report is a micro report plugin based on Flask, and other report engines
 
 ````````````
 
@@ -25,7 +25,7 @@ Links
 
 """
 from __future__ import print_function
-from setuptools import Command, setup
+from setuptools import Command, setup, find_packages
 
 class run_audit(Command):
     """Audits source code using PyFlakes for following issues:
@@ -71,7 +71,10 @@ setup(
     author_email='xiechao06@gmail.com',
     description='A micro report system based upon flask and some report engines',
     long_description=__doc__,
-    packages=['flask_report'],
+    packages=find_packages(),
+    package_data={
+        'flask_report': ['data/*.py']
+    },
     include_package_data=True,
     zip_safe=False,
     platforms='any',

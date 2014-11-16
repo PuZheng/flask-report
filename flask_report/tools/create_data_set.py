@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: UTF-8 -*-
 import os
+from pkg_resources import resource_string, resource_listdir
 
 import yaml
 from clint.textui import puts, prompt, validators
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     if not os.path.exists(data_sets_dir):
         os.makedirs(data_sets_dir)
     new_data_set_id = max([int(dir_) for dir_ in os.listdir(data_sets_dir) if
-                           dir_.isdigit()] or [1])
+                           dir_.isdigit()] or [0]) + 1
     new_data_set_dir = os.path.join(data_sets_dir, str(new_data_set_id))
     os.mkdir(new_data_set_dir)
     meta_file = os.path.join(new_data_set_dir, 'meta.yaml')
@@ -47,6 +48,11 @@ if __name__ == '__main__':
             'creator': creator,
             'filters': ''
         }, allow_unicode=True, stream=f)
+
+    import pudb; pudb.set_trace()
+    s = resource_string('flask_report.data', 'query_def.py')
+    with file(os.path.join(new_data_set_dir, 'query_def.py'), 'w') as f:
+        f.write(s)
 
     puts('Congratulations! the data set meta file is created, '
          'please go on to edit ' + meta_file)
