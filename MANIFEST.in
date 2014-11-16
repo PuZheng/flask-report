@@ -1,2 +1,3 @@
-recursive-include flask_databrowser/templates *
-recursive-include flask_databrowser/static *
+recursive-include flask_report/templates *
+recursive-include flask_report/static *
+recursive-include flask_report/data *.py
