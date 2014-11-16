@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+# -*- coding: UTF-8 -*-
+# basemain.py
 """
 SYNOPSIS
     python runserver.py [options]

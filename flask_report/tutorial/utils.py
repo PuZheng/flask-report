@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: UTF-8 -*-
+# utils.py
 import random
 from datetime import datetime, timedelta
 

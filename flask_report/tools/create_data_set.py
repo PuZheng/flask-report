@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: UTF-8 -*-
 import os
+from datetime import datetime
 
 import yaml
 from clint.textui import puts, prompt, validators
@@ -45,7 +46,7 @@ if __name__ == '__main__':
             'name': name,
             'description': description,
             'creator': creator,
-            'filters': ''
+            'created': str(datetime.now())
         }, allow_unicode=True, stream=f)
 
     puts('Congratulations! the data set meta file is created, '

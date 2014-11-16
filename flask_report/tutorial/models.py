@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+# -*- coding: UTF-8 -*-
+# models.py
 from datetime import datetime
 
 from basemain import db
