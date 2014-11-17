@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: UTF-8 -*-
 import os
-from pkg_resources import resource_string, resource_listdir
+from pkg_resources import resource_string
+from datetime import datetime
 
 import yaml
 from clint.textui import puts, prompt, validators
@@ -46,10 +47,9 @@ if __name__ == '__main__':
             'name': name,
             'description': description,
             'creator': creator,
-            'filters': ''
+            'created': str(datetime.now())
         }, allow_unicode=True, stream=f)
 
-    import pudb; pudb.set_trace()
     s = resource_string('flask_report.data', 'query_def.py')
     with file(os.path.join(new_data_set_dir, 'query_def.py'), 'w') as f:
         f.write(s)

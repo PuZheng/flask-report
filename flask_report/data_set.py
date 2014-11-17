@@ -151,7 +151,7 @@ class DataSet(object):
                 "col": k,
                 "ops": v.get("operators"),
                 'opts': [],
-                'proxy': False
+                'synthetic': False,
             }
 
             if hasattr(column, "property") and hasattr(column.property,
@@ -175,7 +175,7 @@ class DataSet(object):
                 'ops': f.operators,
                 'type': f.type,
                 'opts': f.options,
-                'proxy': True
+                'synthetic': True,
             })
         return filters
 
@@ -185,10 +185,10 @@ class DataSet(object):
         a map of synthetic (user defined) filters, keys are filters'name, values
         are filters
         '''
-        proxy_filter_file = os.path.join(self.dir, 'synthetic_filters.py')
+        synthetic_filter_file = os.path.join(self.dir, 'synthetic_filters.py')
         ret = {}
-        if os.path.exists(proxy_filter_file):
-            lib = import_file(proxy_filter_file)
+        if os.path.exists(synthetic_filter_file):
+            lib = import_file(synthetic_filter_file)
             for filter_ in lib.__all__:
                 ret[filter_.name] = filter_
         return ret

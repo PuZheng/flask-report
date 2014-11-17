@@ -109,7 +109,7 @@
             <a data-value="{{ filter.col }}" data-type="{{ filter.type }}"
               data-ops='{{ filter.ops|tojson|safe }}'
               data-opts='{{ filter.opts|tojson|safe }}'
-              data-proxy={{ 'true' if filter.proxy else 'false' }}>{{ filter.name }}</a>
+              data-synthetic={{ 'true' if filter.synthetic else 'false' }}>{{ filter.name }}</a>
             </li>
             {% endfor %}
           </ul>
@@ -141,7 +141,7 @@
       </label>
       <div class="col-sm-3">
         <select class='form-control'>
-          {{#each options}}
+          {{#each operations}}
           <option value="{{value}}" >{{name}}</option>
           {{/each}}
         </select>
@@ -149,12 +149,13 @@
       <div class="col-sm-3 filter-val">
         {{#ifCond type '==' 'select'}}
           <select>
-            {{#each availVals}}
+            {{#each options}}
               <option value="{{this.[0]}}" >{{this.[1]}}</option>
             {{/each}}
           </select>
         {{else}}
-          <input type="{{type}}" class='form-control' required data-col="{{col}}">
+          <input type="{{type}}" class='form-control' required data-col="{{col}}" 
+          data-synthetic="{{synthetic}}">
         {{/ifCond}}
       </div>
     </div>
@@ -198,7 +199,7 @@
           e.attr("data-type"),
           $.parseJSON(e.attr("data-opts")),
           '',
-          e.attr('data-proxy'));
+          e.attr('data-synthetic'));
       });
       var allOps = [
           {"value": "eq", "name": "{{ _('equal to') }}"},
@@ -208,16 +209,17 @@
           {"value": "le", "name": "{{ _('less than or equal to') }}"},
           {"value": "ne", "name": "{{ _('not equal to') }}"}
       ];
-      jQuery.fn.addFilter = function (col, text, availOps,
-        type, availVals, value, proxy) {
+      jQuery.fn.addFilter = function (col, text, operations,
+        type, options, value, synthetic) {
         var $el = $(template({
                       text: text,
-                      options: allOps.filter(function (op, idx) {
-                          return !availOps || $.inArray(op.value, availOps) != -1
+                      operations: allOps.filter(function (op, idx) {
+                          return !operations || $.inArray(op.value, operations) != -1
                         }),
                       col: col,
                       type: type,
-                      availVals: availVals,
+                      options: options,
+                      synthetic: synthetic
                       })).appendTo($("#clause"))
         if (type == 'date') {
             $el.find('.filter-val input').datetimepicker({format: 'yyyy-mm-dd', minView: "month", autoclose: true, language: "{{ g.locale }}", pickerPosition: "bottom-left"});
@@ -242,7 +244,7 @@
             } else {
               input = $(finds[2]);
             }
-            filters.push({"col": input.attr("data-col"), "op": $($(tr).find("select")).val(), "val": input.val(), 'proxy': input.attr('data-proxy') == 'true'});
+            filters.push({"col": input.attr("data-col"), "op": $($(tr).find("select")).val(), "val": input.val(), 'synthetic': input.attr('data-synthetic') == 'true'});
           });
           $("input[name=filters]").attr('value', JSON.stringify(filters));
         }
