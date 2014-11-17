@@ -22,6 +22,7 @@ class Worker(db.Model):
     name = db.Column(db.String(32), nullable=False, unique=True)
     deparment_id = db.Column(db.Integer, db.ForeignKey('TB_DEPARTMENT.id'),
                              nullable=False)
+    age = db.Column(db.Integer)
 
     department = db.relationship('Department', backref='worker_list')
 

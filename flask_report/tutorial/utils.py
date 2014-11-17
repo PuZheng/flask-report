@@ -38,10 +38,11 @@ def make_data(db):
 
     for worker in workers:
         db.session.add(worker)
-        for i in xrange(random.randrange(1, 541)):
+        for i in xrange(random.randrange(1, 559)):
             quantity = random.randrange(1, 21)
             today = datetime.now().replace(hour=0, minute=0, second=0,
                                            microsecond=0)
-            created = today - timedelta(random.randrange(1, 181))
+            # last six month
+            created = today - timedelta(random.randrange(1, 186))
             db.session.add(WorkCommand(worker=worker, quantity=quantity,
                                        created=created))

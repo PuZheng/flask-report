@@ -52,7 +52,7 @@ class FlaskReport(object):
         self.db = db
         self.app = app
         host = blueprint or app
-        self.conf_dir = app.config.get("REPORT_DIR", "report_conf")
+        self.conf_dir = app.config.get("REPORT_DIR", "report-conf")
         self.report_dir = os.path.join(self.conf_dir, "reports")
         self.notification_dir = os.path.join(self.conf_dir, "notifications")
         self.data_set_dir = os.path.join(self.conf_dir, "data_sets")

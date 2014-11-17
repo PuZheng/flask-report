@@ -15,8 +15,10 @@ use ETL system to process the raw data, then generate report
 The boss want to see reports of deparments and the department leader want
 to see reports of each worker in her department.
 
-First, we need to create a Flask app skeleton. All the codes are located in 
-*flask_report.tutorial*.
+Before we start this tutorial, you should install Flask-Report, and enter
+the tutorial directory in flask_report source directory.
+
+First, we need to create a Flask app skeleton. 
 
 .. literalinclude:: ../../flask_report/tutorial/basemain.py
    :lines: 3, 7-
@@ -59,21 +61,9 @@ and let us open *report-conf/data-sets/1/meta.yaml* to check the content:
 Then we open the query definition file *report-conf/data-sets/1/query_def.py*
 and make it like:
 
-.. code-block:: python
 
-   # -*- coding: UTF-8 -*-
-   from sqlalchemy import func
-
-
-   def get_query(db, model_map):
-
-      WorkCommand = model_map['WorkeCommand']
-      Worker = model_map['Worker']
-      return db.session.query(Worker.id, Worker.name.label('name'),
-                              Worker.department.label('department'),
-                              func.sum(WorkCommand.quantity).label(
-                                 'performance')).group_by(
-                                       WorkCommand.worker_id).join(WorkCommand)
+.. literalinclude:: ../../flask_report/tutorial/sample-report-conf/data_sets/1/query_def.py
+  :linenos:
 
 Then we add a department filter in data set's meta file:
 
@@ -91,10 +81,8 @@ Then we add a department filter in data set's meta file:
 
 To set the time span *this month*, we must provide our handwritten filters:
 
-.. code-block:: python
-
-
-  
+.. literalinclude:: ../../flask_report/tutorial/sample-report-conf/data_sets/1/synthetic_filters.py
+  :linenos:
 
 
 Then we create a report for leader of department A by running: 
@@ -103,12 +91,12 @@ Then we create a report for leader of department A by running:
   
   $ python -m flask_report.tutorial
 
-then open http://127.0.0.1/data-set/1 to create the first report
-
-You could open http://127.0.0.1/report/1 to see the result.
+then open http://127.0.0.1/data-set/1 to create the first report. 
 
 Futhermore, the department leader want to see the average performance of her
-workers in this month
+workers in this month. so we add some aggregate under the data table.
+
+
 
 Then the boss what to see the performance of each department.
 

@@ -8,6 +8,7 @@ def get_query(db, model_map):
     Worker = model_map['Worker']
     return db.session.query(Worker.id, Worker.name.label('name'),
                             Worker.department.label('department'),
+                            Worker.aget.label('age'),
                             func.sum(WorkCommand.quantity).label(
                                 'performance')).group_by(
                                     WorkCommand.worker_id).join(WorkCommand)
