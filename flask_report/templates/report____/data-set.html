@@ -83,7 +83,7 @@
             <i class="fa fa-plus text-info"></i>
           </button>
         </legend>
-        <div id="clause">
+        <div class="filters">
         </div>
       </fieldset>
     {% endif %}
@@ -140,7 +140,7 @@
         {{text}}
       </label>
       <div class="col-sm-3">
-        <select class='form-control'>
+        <select data-role='op'>
           {{#each operations}}
           <option value="{{value}}" >{{name}}</option>
           {{/each}}
@@ -148,14 +148,15 @@
       </div>
       <div class="col-sm-3 filter-val">
         {{#ifCond type '==' 'select'}}
-          <select>
+          <select required data-col="{{col}}" data-synthetic="{{synthetic}}" 
+          data-role='option'>
             {{#each options}}
               <option value="{{this.[0]}}" >{{this.[1]}}</option>
             {{/each}}
           </select>
         {{else}}
           <input type="{{type}}" class='form-control' required data-col="{{col}}" 
-          data-synthetic="{{synthetic}}">
+          data-synthetic="{{synthetic}}" data-role='option'>
         {{/ifCond}}
       </div>
     </div>
@@ -193,7 +194,7 @@
       $('[data-role="filters-selector"] a').dblclick(function () {
         var e = $(this);
         $('.modal-new-filter').modal('hide');
-        $("#clause").addFilter(e.attr('data-value'),
+        $(".filters").addFilter(e.attr('data-value'),
           e.text(),
           $.parseJSON(e.attr("data-ops")),
           e.attr("data-type"),
@@ -220,7 +221,7 @@
                       type: type,
                       options: options,
                       synthetic: synthetic
-                      })).appendTo($("#clause"))
+                      })).appendTo($(".filters"))
         if (type == 'date') {
             $el.find('.filter-val input').datetimepicker({format: 'yyyy-mm-dd', minView: "month", autoclose: true, language: "{{ g.locale }}", pickerPosition: "bottom-left"});
         } else if (type == 'datetime') {
@@ -236,15 +237,9 @@
         var form = $("#main-form");
         if (form.get(0).checkValidity()) {
           var filters = [];
-          $.each(form.find("[name='filter']"), function (idx, tr) {
-            var finds = $(tr).find("input");
-            if (finds.length % 2 == 0) {
-              finds = $(tr).find("select");
-              var input = $(finds[1]);
-            } else {
-              input = $(finds[2]);
-            }
-            filters.push({"col": input.attr("data-col"), "op": $($(tr).find("select")).val(), "val": input.val(), 'synthetic': input.attr('data-synthetic') == 'true'});
+          $.each(form.find(".filters .form-group"), function (idx, $group) {
+            var $input = $group.find('[data-role="option"]');
+            filters.push({"col": input.attr("data-col"), "op": $group.find('[data-role="op"]').val(), "val": input.val(), 'synthetic': input.attr('data-synthetic') == 'true'});
           });
           $("input[name=filters]").attr('value', JSON.stringify(filters));
         }
@@ -257,11 +252,10 @@
       });
 
       $('button[data-role="save-report-btn"]').click(function () {
-          debugger;
         var parsley = $("#main-form").parsley();
         if (parsley.validate()) {
             getFilters();
-            $.post('{{ url_for(".new_report") }}', data = $('#main-form').serialize(),function (data) {
+            $.post('{{ url_for(".report") }}', data = $('#main-form').serialize(),function (data) {
               swal({
                  title: "{{ _("Congratulations") }}",
                  text: sprintf('{{ _("report [%%s] has been created, go to see the report?") }}', data['name']),
@@ -282,7 +276,7 @@
         var form = $("#main-form");
         if (form.get(0).checkValidity()) {
           getFilters();
-          $.post('{{ url_for(".new_report", preview=True) }}', data = $('#main-form').serialize(),function (data) {
+          $.post('{{ url_for(".report", preview=True) }}', data = $('#main-form').serialize(),function (data) {
             window.open('{{url_for(".report", id_=0, preview=true)}}');
           }).fail(function (data) {
                 alert('{{ _("failed to generate report preview, reaon is: ") }}' + data.responseText);

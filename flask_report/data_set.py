@@ -24,10 +24,10 @@ class DataSet(object):
         "date": "date"
     }
 
-    def __init__(self, report_view, id_):
-        self.report_view = report_view
+    def __init__(self, flask_report, id_):
+        self.flask_report = flask_report
         self.id_ = id_
-        data_set_meta_file = os.path.join(self.report_view.data_set_dir,
+        data_set_meta_file = os.path.join(self.flask_report.data_set_dir,
                                           str(id_), 'meta.yaml')
         data_set_meta = yaml.load(file(data_set_meta_file).read())
         self.name = data_set_meta['name']
@@ -45,10 +45,10 @@ class DataSet(object):
         '''
         the query of data set
         '''
-        query_def_file = os.path.join(self.report_view.data_set_dir,
+        query_def_file = os.path.join(self.flask_report.data_set_dir,
                                       str(self.id_), "query_def.py")
         lib = import_file(query_def_file)
-        return lib.get_query(self.report_view.db, self.report_view.model_map)
+        return lib.get_query(self.flask_report.db, self.flask_report.model_map)
 
     @cached_property
     def columns(self):
@@ -112,7 +112,7 @@ class DataSet(object):
 
         for filter_ in filters:
             column, op_ = get_column_operator(filter_["col"],
-                                              self.columns, self.report_view)
+                                              self.columns, self.flask_report)
             if op_ == "filter":
                 method_ = query.filter
             elif op_ == "having":
@@ -144,7 +144,8 @@ class DataSet(object):
         filters = []
 
         for k, v in self._filters.items():
-            column, op_ = get_column_operator(k, self.columns, self.report_view)
+            column, op_ = get_column_operator(k, self.columns,
+                                              self.flask_report)
 
             result = {
                 "name": v.get('name', self._search_label(column)),
@@ -159,7 +160,7 @@ class DataSet(object):
                 def _iter_choices(column):
                     model = column.property.mapper.class_
                     pk = get_primary_key(model)
-                    for row in self.report_view.db.session.query(model):
+                    for row in self.flask_report.db.session.query(model):
                         yield getattr(row, pk), unicode(row)
 
                 result["opts"] = list(_iter_choices(column))
@@ -198,7 +199,7 @@ class DataSet(object):
         '''
         the path of the directory where data set is defined
         '''
-        return os.path.join(self.report_view.data_set_dir, str(self.id_))
+        return os.path.join(self.flask_report.data_set_dir, str(self.id_))
 
     def get_current_filters(self, currents):
         # TODO what is this method for?
