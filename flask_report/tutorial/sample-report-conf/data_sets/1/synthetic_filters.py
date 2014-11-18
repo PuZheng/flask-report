@@ -23,7 +23,7 @@ class MonthFilter(SyntheticFilter):
     def type(self):
         return 'select'
 
-    def __call__(self, model_map, value, q):
+    def __call__(self, model_map, op, value, q):
         today = datetime.today()
         if value == self._LAST_MONTH:
             start_month = today.month - 1

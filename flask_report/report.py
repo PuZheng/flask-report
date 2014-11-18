@@ -17,7 +17,7 @@ from import_file import import_file
 from werkzeug.utils import cached_property
 
 from flask.ext.report.data_set import DataSet
-from flask.ext.report.utils import get_column_operator
+from flask.ext.report.utils import get_column, is_sql_function
 
 
 class Report(object):
@@ -64,7 +64,7 @@ class Report(object):
         ret = []
         for i in self.__columns:
             col = copy.copy(all_columns[i])
-            col['get_drill_down_link'] = lambda r: None
+            col['get_drill_down_link'] = (lambda r: None)
 
             if os.path.isdir(os.path.join(self.flask_report.report_dir,
                              str(self.id_), 'drill_downs', str(i))):
@@ -122,12 +122,6 @@ class Report(object):
         all_columns = self.data_set.columns
         return [all_columns[i] for i in self._avg_columns]
 
-    def _get_operator_and_value(self, value):
-        if isinstance(value, dict) and value.get('operator'):
-            return (getattr(operator, value['operator']), value.get('value'))
-        else:
-            return (operator.eq, value)
-
     @cached_property
     def query(self):
         '''
@@ -136,21 +130,25 @@ class Report(object):
         q = self.data_set.query
         if self.filters:
             for (name, params) in self.filters.items():
-                (column, op_) = get_column_operator(name,
-                                                    self.data_set.columns,
-                                                    self.flask_report)
+                column = get_column(name, self.data_set.columns,
+                                    self.flask_report)
                 if hasattr(column, 'property') and \
                         hasattr(column.property, 'direction'):
                     column = column.property.local_remote_pairs[0][1]
                 if not isinstance(params, list):
                     params = [params]
                 for param in params:
-                    (operator_, value) = \
-                        self._get_operator_and_value(param)
-                    if op_ == 'filter':
-                        q = q.filter(operator_(column, value))
-                    elif op_ == 'having':
-                        q = q.having(operator_(column, value))
+                    if param.get('synthetic'):
+                        filter_ = self.data_set.synthetic_filter_map[name]
+                        q = filter_(self.flask_report.model_map,
+                                    param['operator'], param['value'], q)
+                    else:
+                        bin_expr = getattr(operator,
+                                           param['operator'])(param['value'])
+                        if is_sql_function(column):
+                            q = q.having(bin_expr)
+                        else:
+                            q = q.filter(bin_expr)
         if self.literal_filter_condition is not None:
             q = q.filter(self.literal_filter_condition)
         return q
@@ -349,7 +347,7 @@ def create_report(data_set, name, description='', creator='',
     for (k, v) in filters.items():
         if v['proxy']:
             converted_filters.update(data_set.synthetic_filter_map[k]
-                                    (v['value']))
+                                     (v['value']))
         else:
             converted_filters[k] = v
 

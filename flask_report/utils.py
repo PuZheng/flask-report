@@ -145,17 +145,18 @@ def dump_to_yaml(obj):
     return result
 
 
-def get_column_operator(filter_key, columns, report_view):
+def get_column(filter_key, columns, flask_report):
     # TODO missing documents
+
     col = None
     try:
         if "(" not in filter_key and ")" not in filter_key:
             model_name, column_name = filter_key.split(".")
             col = operator.attrgetter(column_name)(
-                report_view.model_map[model_name])
+                flask_report.model_map[model_name])
         else:
             model_name, column_name = re.split("[()]", filter_key)[1].split(".")
-            model = report_view.model_map[model_name]
+            model = flask_report.model_map[model_name]
             filter_key = filter_key.replace(model_name,
                                             model.__table__.name)
             for c in columns:
@@ -167,7 +168,7 @@ def get_column_operator(filter_key, columns, report_view):
             if filter_key == c["name"]:
                 if "(" not in c["key"] and ")" not in c["key"]:
                     model_name, column_name = c["key"].split(".")
-                    model = report_view.model_map[model_name]
+                    model = flask_report.model_map[model_name]
                     col = operator.attrgetter(column_name)(model)
                 else:
                     col = c["expr"]
@@ -176,13 +177,16 @@ def get_column_operator(filter_key, columns, report_view):
         if col is None:
             raise ValueError(_("No Such Column"))
         else:
-            try:
-                if operator.attrgetter("element.name")(col) in AGGREGATE_FUNC:
-                    return col, "having"
-            except AttributeError:
-                pass
-            return col, "filter"
+            #try:
+                #if operator.attrgetter("element.name")(col) in AGGREGATE_FUNC:
+                    #return col, "having"
+            #except AttributeError:
+                #pass
+            return col
 
+
+def is_sql_function(col):
+    return isinstance(col, sqlalchemy.sql.functions.GenericFunction)
 
 def dump_yaml(path, **kwargs):
     '''
