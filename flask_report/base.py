@@ -69,13 +69,12 @@ class FlaskReport(object):
 
         host.add_url_rule("/report-list/", 'report_list',
                           functools.partial(views.report_list, self))
-        host.add_url_rule("/new-report/", 'new_report',
-                          functools.partial(views.new_report, self),
-                          methods=['POST'])
         host.add_url_rule("/graphs/report/<int:id_>", 'report_graphs',
                           functools.partial(views.report_graphs, self))
-        host.add_url_rule("/report/<int:id_>", 'report',
-                          functools.partial(views.report, self),
+        report_view = functools.partial(views.report, self)
+        host.add_url_rule("/report", 'report', report_view,
+                          methods=['POST'])
+        host.add_url_rule("/report/<int:id_>", 'report', report_view,
                           methods=['GET', 'POST'])
         host.add_url_rule("/report_csv/<int:id_>", 'report_csv',
                           functools.partial(views.report_csv, self))

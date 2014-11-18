@@ -55,44 +55,6 @@ class _ReportForm(Form):
     filters = TextField('filters')
 
 
-def new_report(flask_report):
-    form = _ReportForm(flask_report, request.form)
-
-    if form.validate():
-        def parse_filters(filters):
-            result = {}
-            for current in filters:
-                if current["col"] not in result:
-                    result[current["col"]] = {'operator': current["op"],
-                                              'value': current["val"],
-                                              'proxy': current['proxy']}
-                else:
-                    val = result[current["col"]]
-                    if not isinstance(val, list):
-                        val = [val]
-                    val.append({'operator': current["op"],
-                                'value': current["val"],
-                                'proxy': current['proxy']})
-                    result[current["col"]] = val
-            return result
-
-        name = form.name.data
-        id = None
-        if request.args.get('preview'):
-            name += '(' + _('Preview') + ')'
-            id = 0
-        report_id = create_report(form.data_set, name=name,
-                                  creator=form.creator.data,
-                                  description=form.description.data,
-                                  id=id, columns=form.columns.data,
-                                  filters=parse_filters(
-                                      json.loads(form.filters.data)))
-        return jsonify({'id': report_id, 'name': form.name.data,
-                        'url': url_for('.report', id_=report_id)})
-    else:
-        return jsonify({'errors': form.errors}), 403
-
-
 def report(flask_report, id_=None):
     flask_report.try_view_report()
     if id_ is not None:
@@ -114,6 +76,33 @@ def report(flask_report, id_=None):
                 extra_params = extra_params(id_)
             params.update(extra_params)
         return report.html_template.render(**params)
+    else:  # create report
+        form = _ReportForm(flask_report, request.form)
+
+        if form.validate():
+            name = form.name.data
+            id = None
+            if request.args.get('preview'):
+                name += '(' + _('Preview') + ')'
+                id = 0
+
+            filter_map = {}
+            for filter_ in json.loads(form.filters.data):
+                filter_map.setdefault(filter_['col'], []).append({
+                    'operator': filter_['op'],
+                    'value': filter_['val'],
+                    'synthetic': filter_['synthetic']
+                })
+
+            report_id = create_report(form.data_set, name=name,
+                                      creator=form.creator.data,
+                                      description=form.description.data,
+                                      id=id, columns=form.columns.data,
+                                      filters=filter_map)
+            return jsonify({'id': report_id, 'name': form.name.data,
+                            'url': url_for('.report', id_=report_id)})
+        else:
+            return jsonify({'errors': form.errors}), 403
 
 
 def report_csv(flask_report, id_):

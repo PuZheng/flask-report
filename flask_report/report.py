@@ -343,14 +343,6 @@ def create_report(data_set, name, description='', creator='',
     if not os.path.exists(new_report_dir):
         os.mkdir(new_report_dir)
 
-    converted_filters = {}
-    for (k, v) in filters.items():
-        if v['proxy']:
-            converted_filters.update(data_set.synthetic_filter_map[k]
-                                     (v['value']))
-        else:
-            converted_filters[k] = v
-
     with file(os.path.join(new_report_dir, 'meta.yaml'), 'w') as f:
         dict_ = {
             'name': name,
@@ -359,7 +351,7 @@ def create_report(data_set, name, description='', creator='',
             'creator': creator,
             'create_time': create_time,
             'columns': [int(c) for c in columns],
-            'filters': converted_filters,
+            'filters': filters,
             }
         yaml.safe_dump(dict_, allow_unicode=True, stream=f)
 

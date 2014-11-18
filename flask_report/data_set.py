@@ -102,28 +102,6 @@ class DataSet(object):
         return tuple(_make_dict(idx, c) for idx, c in
                      enumerate(self.query.column_descriptions))
 
-    #def get_query(self, filters):
-        ## TODO what is this method for?
-
-        #def get_operator(op):
-            #return self.__special_chars[op]
-
-        #query = self.query
-
-        #for filter_ in filters:
-            #column, op_ = get_column_operator(filter_["col"],
-                                              #self.columns, self.flask_report)
-            #if op_ == "filter":
-                #method_ = query.filter
-            #elif op_ == "having":
-                #method_ = query.having
-
-            #if hasattr(column, "property") and hasattr(column.property,
-                                                       #"direction"):
-                #column = column.property.local_remote_pairs[0][1]
-            #query = method_(get_operator(filter_["op"])(column, filter_["val"]))
-        #return query
-
     def _search_label(self, column):
         for c in self.columns:
             if c["key"] == str(column.expression) or \
