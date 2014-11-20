@@ -101,21 +101,37 @@ then open http://127.0.0.1/data-set/1 to create the first report:
 
 You could also view the report's meta file:
 
-.. literalinclude:: tutorial/sample-report-conf/reports/4/meta.yaml
+.. literalinclude:: ../../flask_report/tutorial/sample-report-conf/reports/4/meta.yaml
   :linenos:
 
+then open http://127.0.0.1/report/1 to view the report:
 
+.. figure:: _static/report-1.png
+  :scale: 50 %
 
-..TODO 
+  here shows the report generated
+
 Futhermore, the department leader want to see the average performance of her
 workers in this month. so we add some aggregators under the data table. notes, 
 the aggregators are interactive, eg. they are correspondable to table 
-operations like *display N records per page*
+operations like *display N records per page* or "go to next page"
 
+to achieve this, we must override the default report template, add a file
+*'report.html'* under the *report-conf/data-set/1/* directory
 
-..TODO 
+.. literalinclude:: ../../flask_report/tutorial/sample-report-conf/data-sets/1/report.html
+  :linenos:
+
+the reopen http://127.0.0.1/report/1 to view the report again:
+
+.. figure:: _static/report-1-with-aggregators.png
+  :scale: 50 %
+
+  here shows the report with aggreators generated
+
+..TODO
 But the department leader still want to see the overall performance in her
-department. 
+department. So, we must add a static statistic section.
 
 
 ..TODO
