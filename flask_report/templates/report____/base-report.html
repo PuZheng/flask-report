@@ -221,6 +221,7 @@ $(function () {
     if (typeof(aggregators) != "undefined") {
         ost.footerCallback = function (foot, aaData, iStart, iEnd, aiDisplay) {
             var that = this;
+            $('#report tfoot').empty();
             aggregators.forEach(function (aggregator, idx) {
                 // Note!! 0 is reserved as label
                 var tr = $('<tr>').appendTo($('#report tfoot'));
