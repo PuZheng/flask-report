@@ -168,6 +168,12 @@ class Report(object):
 
     @property
     def html_template(self):
+        '''
+        html template of report, the file 'report.html' in its own directory
+        will be used, if not presented, the file 'report.html' in its data set's
+        directory will be used, if not presented, the default template will be
+        used
+        '''
         report_file = os.path.join(self.flask_report.report_dir,
                                    str(self.id_), 'report.html')
         if not os.path.exists(report_file):
