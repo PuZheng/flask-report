@@ -89,23 +89,48 @@ Then we create a report for leader of department A by running:
 
 .. code-block:: bash
   
-  $ python __main__.py -c report-conf
+  $ python __main__.py 
 
-then open http://127.0.0.1/data-set/1 to create the first report. 
+then open http://127.0.0.1/data-set/1 to create the first report: 
 
+.. figure:: _static/data-set-1.png
+  :scale: 50 %
+  
+  here shows data set page.
+
+
+You could also view the report's meta file:
+
+.. literalinclude:: tutorial/sample-report-conf/reports/4/meta.yaml
+  :linenos:
+
+
+
+..TODO 
 Futhermore, the department leader want to see the average performance of her
-workers in this month. so we add some aggregate under the data table.
+workers in this month. so we add some aggregators under the data table. notes, 
+the aggregators are interactive, eg. they are correspondable to table 
+operations like *display N records per page*
 
 
+..TODO 
+But the department leader still want to see the overall performance in her
+department. 
 
+
+..TODO
 Then the boss what to see the performance of each department.
 
+..TODO 
 Laterly, she asks to drill down to each worker's performance.
 
+..TODO 
 The boss may be very busy, so she requires a pie chart of each department in
 this month, and a bar chart for each month in last 180 days.
 
+..TODO 
 When the boss is on business trip, she asks to email to her.
 
+..TODO 
 Finally, the boss tired of typing urls in browser again and again, she asks
 to make a 'real' website

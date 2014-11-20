@@ -38,3 +38,4 @@ tags
 env
 *.sw[p|o]
 flask_report/example/temp.db
+.sass-cache

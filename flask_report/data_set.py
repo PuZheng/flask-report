@@ -109,8 +109,7 @@ class DataSet(object):
 
     def _search_label(self, column):
         for c in self.columns:
-            if c["key"] == str(column.expression) or \
-                    c["expr"] == column:
+            if c["key"] == str(column.expression):
                 return c["name"]
         raise ValueError(_('There\'s no such column ' + str(column)))
 
@@ -129,8 +128,12 @@ class DataSet(object):
         for k, v in self._filters.items():
             column = get_column(k, self.columns, self.flask_report)
 
+            try:
+                name = v.get('name', self._search_label(column))
+            except ValueError:
+                name = str(column)
             result = {
-                "name": v.get('name', self._search_label(column)),
+                "name": name,
                 "col": k,
                 "ops": v.get("operators"),
                 'opts': [],
