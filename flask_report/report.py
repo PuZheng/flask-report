@@ -130,11 +130,6 @@ class Report(object):
         q = self.data_set.query
         if self.filters:
             for (name, params) in self.filters.items():
-                column = get_column(name, self.data_set.columns,
-                                    self.flask_report)
-                if hasattr(column, 'property') and \
-                        hasattr(column.property, 'direction'):
-                    column = column.property.local_remote_pairs[0][1]
                 if not isinstance(params, list):
                     params = [params]
                 for param in params:
@@ -143,12 +138,18 @@ class Report(object):
                         q = filter_(self.flask_report.model_map,
                                     param['operator'], param['value'], q)
                     else:
-                        bin_expr = getattr(operator,
-                                           param['operator'])(param['value'])
-                        if is_sql_function(column):
-                            q = q.having(bin_expr)
-                        else:
-                            q = q.filter(bin_expr)
+                        column = get_column(name, self.data_set.columns,
+                                            self.flask_report)
+                        if hasattr(column, 'property') and \
+                                hasattr(column.property, 'direction'):
+                            column = column.property.local_remote_pairs[0][1]
+                            bin_expr = getattr(operator,
+                                               param['operator'])(column,
+                                                                  param['value'])
+                            if is_sql_function(column):
+                                q = q.having(bin_expr)
+                            else:
+                                q = q.filter(bin_expr)
         if self.literal_filter_condition is not None:
             q = q.filter(self.literal_filter_condition)
         return q
@@ -193,11 +194,11 @@ class Report(object):
         return ''
 
     @property
-    def description(self):
+    def brief(self):
         '''
-        short description of the report
+        short brief of the report
         '''
-        return render_template('report____/report_description.html',
+        return render_template('report____/report-brief.html',
                                report=self)
 
     def get_drill_down_detail_template(self, col_id):

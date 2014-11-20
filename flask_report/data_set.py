@@ -94,9 +94,14 @@ class DataSet(object):
                               sqlalchemy.sql.expression.Function):
                     key = key.replace('"', '')
             else:
-                name = str(c['expr'])
-                key = c['expr'].table.name + "." + c['expr'].name
+                if hasattr(c['expr'], '_sa_class_manager'):  # is a model class
+                    key = c['expr'].__tablename__
+                    name = c['expr'].__name__
+                else:
+                    name = str(c['expr'])
+                    key = c['expr'].table.name + "." + c['expr'].name
 
+            # TODO need key?
             return dict(idx=idx, name=name, key=key, expr=c['expr'])
 
         return tuple(_make_dict(idx, c) for idx, c in
@@ -134,14 +139,16 @@ class DataSet(object):
 
             if hasattr(column, "property") and hasattr(column.property,
                                                        "direction"):
+                model = column.property.mapper.class_
+                pk = get_primary_key(model)
                 def _iter_choices(column):
-                    model = column.property.mapper.class_
-                    pk = get_primary_key(model)
                     for row in self.flask_report.db.session.query(model):
                         yield getattr(row, pk), unicode(row)
 
+                remote_side = column.property.local_remote_pairs[0][0]
                 result["opts"] = list(_iter_choices(column))
-                result['type'] = 'select'
+                result['type'] = v.get('type',
+                                       self._coerce_type(remote_side))
             else:
                 result['type'] = v.get('type', self._coerce_type(column))
             filters.append(result)

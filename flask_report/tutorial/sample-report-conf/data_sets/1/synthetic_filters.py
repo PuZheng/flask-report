@@ -21,10 +21,11 @@ class MonthFilter(SyntheticFilter):
 
     @property
     def type(self):
-        return 'select'
+        return 'number'
 
     def __call__(self, model_map, op, value, q):
         today = datetime.today()
+        value = int(value)
         if value == self._LAST_MONTH:
             start_month = today.month - 1
             end_month = start_month + 1

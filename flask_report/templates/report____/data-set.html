@@ -147,7 +147,7 @@
         </select>
       </div>
       <div class="col-sm-3 filter-val">
-        {{#ifCond type '==' 'select'}}
+        {{#if options}}
           <select required data-col="{{col}}" data-synthetic="{{synthetic}}" 
           data-role='option'>
             {{#each options}}
@@ -157,7 +157,7 @@
         {{else}}
           <input type="{{type}}" class='form-control' required data-col="{{col}}" 
           data-synthetic="{{synthetic}}" data-role='option'>
-        {{/ifCond}}
+        {{/if}}
       </div>
     </div>
     {% endraw %}
@@ -237,9 +237,9 @@
         var form = $("#main-form");
         if (form.get(0).checkValidity()) {
           var filters = [];
-          $.each(form.find(".filters .form-group"), function (idx, $group) {
-            var $input = $group.find('[data-role="option"]');
-            filters.push({"col": input.attr("data-col"), "op": $group.find('[data-role="op"]').val(), "val": input.val(), 'synthetic': input.attr('data-synthetic') == 'true'});
+          $.each(form.find(".filters .form-group"), function () {
+            var $input = $(this).find('[data-role="option"]');
+            filters.push({"col": $input.attr("data-col"), "op": $(this).find('[data-role="op"]').val(), "val": $input.val(), 'synthetic': $input.attr('data-synthetic') == 'true'});
           });
           $("input[name=filters]").attr('value', JSON.stringify(filters));
         }

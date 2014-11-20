@@ -18,6 +18,12 @@ class SyntheticFilter(object):
 
     @property
     def type(self):
+        '''
+        :return string: the html input element's type, ref to
+            `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input`_
+            note! if :py:meth:`SyntheticFilter.options` is not None, the
+            select element will be used
+        '''
         raise NotImplementedError('unimplemented')
 
     @property
@@ -32,10 +38,12 @@ class SyntheticFilter(object):
                     ('1', 'Tom'),
                     ('2', 'Jerry')
                 ]
+
+            if None, then fill the plain value
         '''
         raise NotImplementedError('unimplemented')
 
-    def __call__(self, model_map, value, q):
+    def __call__(self, model_map, op, value, q):
         '''
         :param model_map: a map of model, ref to
             :py:attribute:`flask_report.FlaskReport.model_map`

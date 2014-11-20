@@ -177,11 +177,6 @@ def get_column(filter_key, columns, flask_report):
         if col is None:
             raise ValueError(_("No Such Column"))
         else:
-            #try:
-                #if operator.attrgetter("element.name")(col) in AGGREGATE_FUNC:
-                    #return col, "having"
-            #except AttributeError:
-                #pass
             return col
 
 
