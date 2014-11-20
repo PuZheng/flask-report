@@ -49,7 +49,7 @@ class MonthFilter(SyntheticFilter):
             end_year = today.year - 1
             end_month += 12
         elif end_month >= 13:
-            end_year += 1
+            end_year = today.year + 1
             end_month %= 12
         else:
             end_year = today.year

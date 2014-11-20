@@ -217,6 +217,7 @@ $(function () {
         "bSortCellsTop": true,
         "sDom": "<'row'<'col-lg-6'l>r>t<'row'<'col-lg-6'i><'col-lg-6'p>>",
         "iDisplayLength": 25,
+        'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, "{{ _("All") }}"]],
     }
     if (typeof(aggregators) != "undefined") {
         ost.footerCallback = function (foot, aaData, iStart, iEnd, aiDisplay) {
