@@ -143,9 +143,8 @@ class Report(object):
                         if hasattr(column, 'property') and \
                                 hasattr(column.property, 'direction'):
                             column = column.property.local_remote_pairs[0][1]
-                            bin_expr = getattr(operator,
-                                               param['operator'])(column,
-                                                                  param['value'])
+                            op = getattr(operator, param['operator'])
+                            bin_expr = op(column, param['value'])
                             if is_sql_function(column):
                                 q = q.having(bin_expr)
                             else:
@@ -172,11 +171,12 @@ class Report(object):
         report_file = os.path.join(self.flask_report.report_dir,
                                    str(self.id_), 'report.html')
         if not os.path.exists(report_file):
-
-            # read the default report template
-
-            return self.flask_report.app.jinja_env.get_template(
-                'report____/report.html')
+            # search data set directory
+            report_file = os.path.join(self.data_set.dir, 'report.html')
+            if not os.path.exists(report_file):
+                # read the default report template
+                return self.flask_report.app.jinja_env.get_template(
+                    'report____/report.html')
         return self.flask_report.app.jinja_env.from_string(
             codecs.open(report_file, encoding='utf-8').read())
 
