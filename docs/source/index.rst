@@ -18,6 +18,7 @@ Contents:
    Extension
    Internationalization
    Screenshots
+   Configuration File Explained <Configuration-File-Explained>
 
    API
 

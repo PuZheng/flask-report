@@ -16,6 +16,7 @@ sdist
 develop-eggs
 .installed.cfg
 lib
+!flask_report/static/vendors/sweetalert/lib
 lib64
 
 # Installer logs

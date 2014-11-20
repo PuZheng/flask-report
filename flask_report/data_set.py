@@ -8,7 +8,7 @@ from werkzeug.utils import cached_property
 import sqlalchemy
 from flask.ext.babel import _
 
-from flask.ext.report.utils import get_column_operator, get_primary_key
+from flask.ext.report.utils import get_column, get_primary_key
 
 
 class DataSet(object):
@@ -24,10 +24,10 @@ class DataSet(object):
         "date": "date"
     }
 
-    def __init__(self, report_view, id_):
-        self.report_view = report_view
+    def __init__(self, flask_report, id_):
+        self.flask_report = flask_report
         self.id_ = id_
-        data_set_meta_file = os.path.join(self.report_view.data_set_dir,
+        data_set_meta_file = os.path.join(self.flask_report.data_set_dir,
                                           str(id_), 'meta.yaml')
         data_set_meta = yaml.load(file(data_set_meta_file).read())
         self.name = data_set_meta['name']
@@ -45,10 +45,10 @@ class DataSet(object):
         '''
         the query of data set
         '''
-        query_def_file = os.path.join(self.report_view.data_set_dir,
+        query_def_file = os.path.join(self.flask_report.data_set_dir,
                                       str(self.id_), "query_def.py")
         lib = import_file(query_def_file)
-        return lib.get_query(self.report_view.db, self.report_view.model_map)
+        return lib.get_query(self.flask_report.db, self.flask_report.model_map)
 
     @cached_property
     def columns(self):
@@ -94,35 +94,18 @@ class DataSet(object):
                               sqlalchemy.sql.expression.Function):
                     key = key.replace('"', '')
             else:
-                name = str(c['expr'])
-                key = c['expr'].table.name + "." + c['expr'].name
+                if hasattr(c['expr'], '_sa_class_manager'):  # is a model class
+                    key = c['expr'].__tablename__
+                    name = c['expr'].__name__
+                else:
+                    name = str(c['expr'])
+                    key = c['expr'].table.name + "." + c['expr'].name
 
+            # TODO need key?
             return dict(idx=idx, name=name, key=key, expr=c['expr'])
 
         return tuple(_make_dict(idx, c) for idx, c in
                      enumerate(self.query.column_descriptions))
-
-    def get_query(self, filters):
-        # TODO what is this method for?
-
-        def get_operator(op):
-            return self.__special_chars[op]
-
-        query = self.query
-
-        for filter_ in filters:
-            column, op_ = get_column_operator(filter_["col"],
-                                              self.columns, self.report_view)
-            if op_ == "filter":
-                method_ = query.filter
-            elif op_ == "having":
-                method_ = query.having
-
-            if hasattr(column, "property") and hasattr(column.property,
-                                                       "direction"):
-                column = column.property.local_remote_pairs[0][1]
-            query = method_(get_operator(filter_["op"])(column, filter_["val"]))
-        return query
 
     def _search_label(self, column):
         for c in self.columns:
@@ -144,26 +127,28 @@ class DataSet(object):
         filters = []
 
         for k, v in self._filters.items():
-            column, op_ = get_column_operator(k, self.columns, self.report_view)
+            column = get_column(k, self.columns, self.flask_report)
 
             result = {
                 "name": v.get('name', self._search_label(column)),
                 "col": k,
                 "ops": v.get("operators"),
                 'opts': [],
-                'proxy': False
+                'synthetic': False,
             }
 
             if hasattr(column, "property") and hasattr(column.property,
                                                        "direction"):
+                model = column.property.mapper.class_
+                pk = get_primary_key(model)
                 def _iter_choices(column):
-                    model = column.property.mapper.class_
-                    pk = get_primary_key(model)
-                    for row in self.report_view.db.session.query(model):
+                    for row in self.flask_report.db.session.query(model):
                         yield getattr(row, pk), unicode(row)
 
+                remote_side = column.property.local_remote_pairs[0][0]
                 result["opts"] = list(_iter_choices(column))
-                result['type'] = 'select'
+                result['type'] = v.get('type',
+                                       self._coerce_type(remote_side))
             else:
                 result['type'] = v.get('type', self._coerce_type(column))
             filters.append(result)
@@ -175,7 +160,7 @@ class DataSet(object):
                 'ops': f.operators,
                 'type': f.type,
                 'opts': f.options,
-                'proxy': True
+                'synthetic': True,
             })
         return filters
 
@@ -185,10 +170,10 @@ class DataSet(object):
         a map of synthetic (user defined) filters, keys are filters'name, values
         are filters
         '''
-        proxy_filter_file = os.path.join(self.dir, 'synthetic_filters.py')
+        synthetic_filter_file = os.path.join(self.dir, 'synthetic_filters.py')
         ret = {}
-        if os.path.exists(proxy_filter_file):
-            lib = import_file(proxy_filter_file)
+        if os.path.exists(synthetic_filter_file):
+            lib = import_file(synthetic_filter_file)
             for filter_ in lib.__all__:
                 ret[filter_.name] = filter_
         return ret
@@ -198,7 +183,7 @@ class DataSet(object):
         '''
         the path of the directory where data set is defined
         '''
-        return os.path.join(self.report_view.data_set_dir, str(self.id_))
+        return os.path.join(self.flask_report.data_set_dir, str(self.id_))
 
     def get_current_filters(self, currents):
         # TODO what is this method for?

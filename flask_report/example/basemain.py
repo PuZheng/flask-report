@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-from flask import Flask, Blueprint
+from flask import Flask
 
 app = Flask(__name__)
 
@@ -8,7 +8,7 @@ app.config["SECRET_KEY"] = "JHdkj1;"
 app.config['BABEL_DEFAULT_LOCALE'] = 'zh_CN'
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///temp.db"
 app.config["DEBUG"] = True
-app.config['REPORT_DIR'] = "example/report_conf"
+app.config['REPORT_CONFIG_DIR'] = "example/report_conf"
 
 from flask.ext.babel import Babel
 
