@@ -101,7 +101,7 @@ then open http://127.0.0.1/data-set/1 to create the first report:
 
 You could also view the report's meta file:
 
-.. literalinclude:: ../../flask_report/tutorial/sample-report-conf/reports/4/meta.yaml
+.. literalinclude:: ../../flask_report/tutorial/sample-report-conf/reports/1/meta.yaml
   :linenos:
 
 then open http://127.0.0.1/report/1 to view the report:

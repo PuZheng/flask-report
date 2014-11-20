@@ -1,0 +1,11 @@
+columns: [0, 1, 2, 3, 4]
+create_time: '2014-11-20 15:15:03'
+creator: Miss department A
+data_set_id: 1
+description: ''
+filters:
+  Worker.department:
+  - {operator: eq, synthetic: false, value: '1'}
+  month:
+  - {operator: eq, synthetic: true, value: '3'}
+name: performance of department A of this quater

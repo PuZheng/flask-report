@@ -1,0 +1,50 @@
+{% extends "report____/base-report.html" %}
+
+{% block report____footer_block %}
+<script type='text/javascript'>
+  var aggregators = [
+      {
+        name: "{{ _('Total') }}",
+        fn: function (arr) {
+          var sum = 0;
+          arr.forEach(function (v, idx) {
+            sum += parseFloat(v);
+          });
+          return sum;
+        },
+        columns: [4]
+      },
+      {
+        name: "{{ _('Avg') }}",
+        fn: function (arr) {
+          var sum = 0;
+          arr.forEach(function (v, idx) {
+            sum += parseFloat(v);
+          });
+          return sum/arr.length;
+        },
+        columns: [4]
+      },
+    ];
+</script>
+{{ super() }}
+{% endblock %}
+
+{% block report_table }
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    Statistic
+  </div>
+  <div class="panel-body">
+    <dl class="dl-horizontal">
+      <dt>Total performance: </dt>
+      <dd>{{ total_performance }}</dd>
+      <dt>Avg performance: </dt>
+      <dd>{{ avg_performance }}</dd>
+    </dl>
+  </div>
+</div>
+
+{{ super() }}
+{% endblock report_table %}
