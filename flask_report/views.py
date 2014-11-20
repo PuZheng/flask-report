@@ -1,5 +1,4 @@
 import os
-import types
 from flask import request
 import json
 from StringIO import StringIO
@@ -25,10 +24,8 @@ def report_list(flask_report):
     # directory 0 is reserved for special purpose
     reports = flask_report.report_list
     params = dict(reports=reports)
-    extra_params = flask_report.extra_params.get('report-list')
+    extra_params = flask_report.report_list_template_param(reports)
     if extra_params:
-        if isinstance(extra_params, types.FunctionType):
-            extra_params = extra_params()
         params.update(extra_params)
     return render_template('report____/report-list.html', **params)
 
@@ -70,10 +67,8 @@ def report(flask_report, id_=None):
                                                     HtmlFormatter())
             params['customized_filter_condition'] = \
                 customized_filter_condition
-        extra_params = flask_report.extra_params.get("report")
+        extra_params = flask_report.report_template_param(report)
         if extra_params:
-            if isinstance(extra_params, types.FunctionType):
-                extra_params = extra_params(id_)
             params.update(extra_params)
         return report.html_template.render(**params)
     else:  # create report
@@ -141,10 +136,8 @@ def data_set_list(flask_report):
                  os.listdir(flask_report.data_set_dir) if
                  dir_name.isdigit() and dir_name != '0']
     params = dict(data_sets=data_sets)
-    extra_params = flask_report.extra_params.get("data-sets")
+    extra_params = flask_report.data_set_list_template_param(data_sets)
     if extra_params:
-        if isinstance(extra_params, types.FunctionType):
-            extra_params = extra_params()
         params.update(extra_params)
     return render_template("report____/data-set-list.html", **params)
 
@@ -155,10 +148,8 @@ def data_set(flask_report, id_):
     SQL_html = highlight(query_to_sql(data_set.query), SqlLexer(),
                          HtmlFormatter())
     params = dict(data_set=data_set, SQL=SQL_html)
-    extra_params = flask_report.extra_params.get('data-set')
+    extra_params = flask_report.data_set_template_param(data_set)
     if extra_params:
-        if isinstance(extra_params, types.FunctionType):
-            extra_params = extra_params(id_)
         params.update(extra_params)
     return render_template("report____/data-set.html", **params)
 
@@ -168,10 +159,8 @@ def notification_list(flask_report):
                      in os.listdir(flask_report.notification_dir) if
                      dir_name.isdigit() and dir_name != '0']
     params = dict(notification_list=notifications)
-    extra_params = flask_report.extra_params.get("notification-list")
+    extra_params = flask_report.notification_list_template_param(notifications)
     if extra_params:
-        if isinstance(extra_params, types.FunctionType):
-            extra_params = extra_params()
         params.update(extra_params)
     return render_template("report____/notification-list.html", **params)
 
@@ -205,10 +194,9 @@ def notification(flask_report, id_=None):
         else:
             params = dict(notification=notification,
                           report_list=flask_report.report_list)
-            extra_params = flask_report.extra_params.get("notification")
+            extra_params = flask_report.notification_template_param(
+                notification)
             if extra_params:
-                if isinstance(extra_params, types.FunctionType):
-                    extra_params = extra_params(id_)
                 params.update(extra_params)
             return render_template("report____/notification.html", **params)
     else:
@@ -225,10 +213,8 @@ def notification(flask_report, id_=None):
         else:
             # TODO why no id_?
             params = dict(report_list=flask_report.report_list)
-            extra_params = flask_report.extra_params.get("notification")
+            extra_params = flask_report.notification_template_param(None)
             if extra_params:
-                if isinstance(extra_params, types.FunctionType):
-                    extra_params = extra_params()
                 params.update(extra_params)
             return render_template("report____/notification.html", **params)
 

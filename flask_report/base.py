@@ -22,28 +22,14 @@ class FlaskReport(object):
 
     '''
 
-    def __init__(self, app, db, models, blueprint=None, extra_params=None,
-                 table_label_map=None, mail=None):
+    def __init__(self, app, db, models, blueprint=None, table_label_map=None,
+                 mail=None):
         '''
         :param app: flask app instance
         :param db: database instance
         :param models: a list of models
         :param flaks.Blueprint blueprint: provide blueprint if you want register
             web pages under this blueprint
-        :param dict extra_params: extra template parameters for each page, you
-            may want to use them when you override default templates, for
-            example, add a navigation bar. The keys include:
-
-                * data-set-list
-                * data-set
-                * report-list
-                * report
-                * notification
-                * notification-list
-
-            they correspond to pages with the same filename plus suffix 'html'.
-            The values are the parameters provided to each page, they may be
-            functions with no args if you want lazy evaluation
         :param dict table_label_map: a dict from table to label, the keys are
             the table name, the values are the labels of each table
         :param mail: the mail instance if you want send email, see
@@ -111,12 +97,6 @@ class FlaskReport(object):
                                    static_folder="static",
                                    template_folder="templates")
         app.register_blueprint(self.blueprint, url_prefix="/__report__")
-        self._extra_params = extra_params or {'report': lambda id_: {},
-                                              'report_list': lambda: {},
-                                              'data_set': lambda id_: {},
-                                              'data_sets': lambda: {},
-                                              'notification-list': lambda: {},
-                                              'notification': lambda id_: {}}
 
         @app.template_filter("dpprint")
         def dict_pretty_print(value):
@@ -151,14 +131,6 @@ class FlaskReport(object):
         the model classes
         '''
         return self._model_map
-
-    @property
-    def extra_params(self):
-        '''
-        the user defined template parameters, see
-        `flask.ext.report.FlaskReport.__init__`_
-        '''
-        return self._extra_params
 
     def try_view_report(self):
         '''
@@ -196,3 +168,45 @@ class FlaskReport(object):
     def get_model_label(self, table):
         return self.table_label_map.get(table.name) or \
             self.table_map[table.name].__name__
+
+    def report_list_template_param(self, report_list):
+        '''
+        extra template parameter provide to report list page, override this
+        method if you want override default report list template
+        '''
+        return None
+
+    def report_template_param(self, report):
+        '''
+        extra template parameter provide to report page, override this
+        method if you want override default report template
+        '''
+        return None
+
+    def data_set_list_template_param(self, data_set_list):
+        '''
+        extra template parameter provide to data set list page, override this
+        method if you want override default data set list template
+        '''
+        return None
+
+    def data_set_template_param(self, data_set):
+        '''
+        extra template parameter provide to data set page, override this
+        method if you want override default data set template
+        '''
+        return None
+
+    def notification_list_template_param(self, notification_list):
+        '''
+        extra template parameter provide to notification list page, override
+        this method if you want override default notification list template
+        '''
+        return None
+
+    def notification_template_param(self, notification):
+        '''
+        extra template parameter provide to notification page, override this
+        method if you want override default notification template
+        '''
+        return None
