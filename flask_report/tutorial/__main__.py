@@ -16,7 +16,21 @@ OPTIONS
 import sys
 from getopt import getopt
 
+from flask.ext import report
 from basemain import app, db
+
+
+class MyFlaskReport(report.FlaskReport):
+
+    def report_template_param(self, report):
+
+        performance_list = [record[4] for record in report.data]
+        return {
+            'total_performance': sum(performance_list),
+            'avg_performance': float(sum(performance_list)) /
+            len(performance_list),
+        }
+
 
 
 @app.before_first_request
@@ -56,9 +70,8 @@ if __name__ == '__main__':
     except NameError:
         pass
 
-    from flask.ext import report
     import models
 
-    report.FlaskReport(app, db, report.utils.collect_models(models))
+    MyFlaskReport(app, db, report.utils.collect_models(models))
 
     app.run(debug=True, port=port, host=host)

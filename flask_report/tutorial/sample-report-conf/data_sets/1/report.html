@@ -30,11 +30,14 @@
 {{ super() }}
 {% endblock %}
 
-{% block report_table }
+{% block report_table %}
 
 <div class="panel panel-default">
   <div class="panel-heading">
-    Statistic
+    Statistic of 
+    <b>
+    {{ report.name }}
+    </b>
   </div>
   <div class="panel-body">
     <dl class="dl-horizontal">

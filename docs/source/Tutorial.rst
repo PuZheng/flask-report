@@ -89,7 +89,7 @@ Then we create a report for leader of department A by running:
 
 .. code-block:: bash
   
-  $ python __main__.py 
+  $ python -m flask_report.tutorial
 
 then open http://127.0.0.1/data-set/1 to create the first report: 
 
@@ -117,10 +117,11 @@ the aggregators are interactive, eg. they are correspondable to table
 operations like *display N records per page* or "go to next page"
 
 to achieve this, we must override the default report template, add a file
-*'report.html'* under the *report-conf/data-set/1/* directory
+*'report.html'* into the *report-conf/data-set/1/* directory
 
-.. literalinclude:: ../../flask_report/tutorial/sample-report-conf/data-sets/1/report.html
+.. literalinclude:: ../../flask_report/tutorial/sample-report-conf/data_sets/1/report.html
   :linenos:
+  :lines: 1-32
 
 the reopen http://127.0.0.1/report/1 to view the report again:
 
@@ -129,9 +130,27 @@ the reopen http://127.0.0.1/report/1 to view the report again:
 
   here shows the report with aggreators generated
 
-..TODO
 But the department leader still want to see the overall performance in her
-department. So, we must add a static statistic section.
+department. So, we must add a static statistic section. to acheive this, we
+could provide extra template parameters for report, and add a new block to
+report template.
+
+
+.. literalinclude:: ../../flask_report/tutorial/__main__.py
+  :linenos:
+  :pyobject: MyFlaskReport
+
+
+the report template is like:
+
+.. literalinclude:: ../../flask_report/tutorial/sample-report-conf/data_sets/1/report.html
+  :linenos:
+
+
+the generated report page is like: 
+
+.. figure:: _static/report-1-with-statistics.png
+  :scale: 50 %
 
 
 ..TODO
