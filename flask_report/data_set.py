@@ -144,6 +144,7 @@ class DataSet(object):
                                                        "direction"):
                 model = column.property.mapper.class_
                 pk = get_primary_key(model)
+
                 def _iter_choices(column):
                     for row in self.flask_report.db.session.query(model):
                         yield getattr(row, pk), unicode(row)

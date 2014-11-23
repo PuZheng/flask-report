@@ -1,0 +1,9 @@
+columns: [0, 1, 2, 3]
+create_time: '2014-11-23 16:55:28'
+creator: ''
+data_set_id: 2
+description: ''
+filters:
+  month:
+  - {operator: eq, synthetic: true, value: '1'}
+name: performance of each department in last month

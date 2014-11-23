@@ -23,7 +23,7 @@ class Worker(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), nullable=False, unique=True)
-    deparment_id = db.Column(db.Integer, db.ForeignKey('TB_DEPARTMENT.id'),
+    department_id = db.Column(db.Integer, db.ForeignKey('TB_DEPARTMENT.id'),
                              nullable=False)
     age = db.Column(db.Integer)
 

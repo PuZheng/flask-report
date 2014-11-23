@@ -153,8 +153,8 @@ the generated report page is like:
   :scale: 50 %
 
 
-..TODO
-Then the boss what to see the performance of each department.
+Then the boss become interesed and want to see the performance of each department.
+so we add the next data source and create the report.
 
 ..TODO 
 Laterly, she asks to drill down to each worker's performance.

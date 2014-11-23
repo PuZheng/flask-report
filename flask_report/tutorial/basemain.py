@@ -7,7 +7,7 @@ from flask.ext.babel import Babel
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-# app.config['SQLALCHEMY_ECHO'] = True
+app.config['SQLALCHEMY_ECHO'] = True
 Babel(app)
 
 db = SQLAlchemy(app)

@@ -143,12 +143,12 @@ class Report(object):
                         if hasattr(column, 'property') and \
                                 hasattr(column.property, 'direction'):
                             column = column.property.local_remote_pairs[0][1]
-                            op = getattr(operator, param['operator'])
-                            bin_expr = op(column, param['value'])
-                            if is_sql_function(column):
-                                q = q.having(bin_expr)
-                            else:
-                                q = q.filter(bin_expr)
+                        op = getattr(operator, param['operator'])
+                        bin_expr = op(column, param['value'])
+                        if is_sql_function(column):
+                            q = q.having(bin_expr)
+                        else:
+                            q = q.filter(bin_expr)
         if self.literal_filter_condition is not None:
             q = q.filter(self.literal_filter_condition)
         return q

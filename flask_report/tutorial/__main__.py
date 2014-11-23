@@ -22,21 +22,23 @@ from basemain import app, db
 
 class MyFlaskReport(report.FlaskReport):
 
-    def report_template_param(self, report):
+    pass
+    #def report_template_param(self, report):
 
-        performance_list = [record[4] for record in report.data]
-        return {
-            'total_performance': sum(performance_list),
-            'avg_performance': float(sum(performance_list)) /
-            len(performance_list),
-        }
-
+        #performance_list = [record[4] for record in report.data]
+        #return {
+            #'total_performance': sum(performance_list),
+            #'avg_performance': float(sum(performance_list)) /
+            #len(performance_list),
+        #}
 
 
 @app.before_first_request
 def init():
     from utils import make_data
+    db.engine.echo = False
     make_data(db)
+    db.engine.echo = True
 
 if __name__ == '__main__':
 
